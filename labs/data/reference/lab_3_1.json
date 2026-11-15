@@ -1,0 +1,60 @@
+{
+ "decisions": {
+  "Q1": {
+   "evidence": "a synthetic file to develop the model; the final model is fitted by the consortium on the real data (or by query service)",
+   "option": "synthetic",
+   "residual_risk": "privacy is only claimed after the attacks of Lab 3.4; relationships it loses bias the model"
+  },
+  "Q2": {
+   "evidence": "small synthetic cells are off by 153% on average; the ministry needs exact counts",
+   "option": "query service",
+   "residual_risk": "small published counts can identify people: suppress or add noise (Day 4)"
+  },
+  "Q3": {
+   "evidence": "teaching needs structure, not exact values; anyone will download it",
+   "option": "synthetic",
+   "residual_risk": "must pass the attacks with margin, since the file is public forever"
+  },
+  "Q4": {
+   "evidence": "the rare group is lost or invented in synthetic data; 35% of patients are unique on five attributes",
+   "option": "extract",
+   "residual_risk": "named-purpose agreement, minimum columns, access controls, no onward sharing"
+  }
+ },
+ "rare": [
+  {
+   "band": "0",
+   "cells": 2,
+   "invented": 2,
+   "lost": 0,
+   "mean_rel_error": 1.0
+  },
+  {
+   "band": "1-9",
+   "cells": 14,
+   "invented": 0,
+   "lost": 2,
+   "mean_rel_error": 1.529
+  },
+  {
+   "band": "10-49",
+   "cells": 45,
+   "invented": 0,
+   "lost": 0,
+   "mean_rel_error": 0.308
+  },
+  {
+   "band": "50+",
+   "cells": 48,
+   "invented": 0,
+   "lost": 0,
+   "mean_rel_error": 0.099
+  }
+ ],
+ "uniqueness": {
+  "+ nationality": 0.1147,
+  "+ nationality, site": 0.3515,
+  "sex, birth year, region": 0.0417,
+  "sex, region": 0.0
+ }
+}

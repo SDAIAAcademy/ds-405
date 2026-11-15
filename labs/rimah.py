@@ -294,6 +294,53 @@ def read_events(path) -> list[dict]:
     return [json.loads(line) for line in Path(path).read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
+# ---------------------------------------------------------------- the study tables (Days 3 and 4)
+PARENT = ["sex", "birth_year", "region", "nationality", "diabetes", "ckd", "heart_failure", "prior_admissions", "site"]
+CHILD = ["admit_month", "los_days", "ward", "dx_group", "n_meds", "creatinine", "glucose", "discharge", "readmit_30d"]
+FEATURES = ["heart_failure", "ckd", "diabetes", "age", "age_75", "prior", "los_days", "n_meds",
+            "against_advice", "repeat_stay", "ckd_x_los"]
+
+
+def study(part: str = "train") -> tuple[pl.DataFrame, pl.DataFrame]:
+    """(patients, encounters) of the study: part is "train" or "holdout" (the holdout is never given to a generator)."""
+    return load(f"study/patients_{part}.parquet"), load(f"study/encounters_{part}.parquet")
+
+
+def synthetic(name: str) -> tuple[pl.DataFrame, pl.DataFrame]:
+    """(patients, encounters) of a reference synthetic pair: "independent", "trees" or "vendor"."""
+    return load(f"study/synthetic/{name}_patients.parquet"), load(f"study/synthetic/{name}_encounters.parquet")
+
+
+def model_rows(patients: pl.DataFrame, encounters: pl.DataFrame) -> pl.DataFrame:
+    """One row per encounter with the features of the readmission study and the outcome readmit_30d."""
+    return encounters.join(patients, on="study_id").select(
+        "heart_failure", "ckd", "diabetes", (2025 - pl.col("birth_year")).alias("age"),
+        (pl.col("birth_year") <= 1950).cast(pl.Int64).alias("age_75"),
+        pl.col("prior_admissions").clip(0, 4).alias("prior"), "los_days", "n_meds",
+        (pl.col("discharge") == "against_advice").cast(pl.Int64).alias("against_advice"),
+        (pl.col("enc_seq") > 1).cast(pl.Int64).alias("repeat_stay"),
+        (pl.col("ckd") * pl.col("los_days")).alias("ckd_x_los"), "readmit_30d")
+
+
+def codes(s: pl.Series, like: pl.Series | None = None) -> pl.Series:
+    """Numbers as floats; text as the position of its value among the sorted values of `like` (or of s)."""
+    if s.dtype == pl.String:
+        cats = sorted((like if like is not None else s).unique().to_list())
+        return s.replace_strict({c: i for i, c in enumerate(cats)}, default=-1.0, return_dtype=pl.Float64)
+    return s.cast(pl.Float64)
+
+
+def scaled(df: pl.DataFrame, cols: list[str], like: pl.DataFrame):
+    """The columns as a float matrix, each centred and scaled by the mean and spread of `like`.
+    Text columns are coded on the values of `like`, so two tables coded on the same `like` compare."""
+    import numpy as np
+    out = []
+    for c in cols:
+        ref = codes(like[c], like[c]).to_numpy()
+        out.append((codes(df[c], like[c]).to_numpy() - ref.mean()) / (ref.std() or 1.0))
+    return np.column_stack(out)
+
+
 # ---------------------------------------------------------------- small utilities
 ARABIC_INDIC = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 

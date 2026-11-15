@@ -1,158 +1,348 @@
 <section class="slide title" id="title" data-auto="title">
-  <aside class="notes">REPLACE: welcome; introduce yourself; one question to the room that calibrates the pace; the rhythm of the day</aside>
+  <aside class="notes"><p>Open with Prof. Adnan Al-Shuwaiman's email: the university wants "a copy of the readmission data" for a modelling project. Today decides whether a synthetic copy can answer it. Day 3 needs no lake: the study tables are committed in labs/data/study. Ask the room: who has received a file described as "synthetic, so safe"? Keep the answers for session 4.</p></aside>
 </section>
 
 <section class="slide" id="agenda" data-auto="agenda"></section>
 
-<!-- Session 1 -->
-
-<section class="slide section" id="s1" data-auto="section" data-session="1"></section>
-
-<section class="slide" id="s1-idea" data-lo="LO5">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="review-day2" data-label="Review" data-lo="LO2">
+  <div class="kicker">Review of Day 2</div>
+  <h2>Yesterday in one decision</h2>
+  <div class="quiz" data-type="single" data-lo="LO2">
+    <p class="lead">Sidra corrects 15 creatinine results three days after sending them. Your daily load overwrites the delivery day's partition. What does the curated table hold afterwards?</p>
+    <div class="opts">
+      <div class="opt" data-why="Assumes overwrite by day reaches rows that belong to an earlier day">The corrected values only</div>
+      <div class="opt" data-ok>Both the original and the corrected results: 15 duplicate keys</div>
+      <div class="opt" data-why="Confuses a predicate overwrite with a full table rewrite">Only the latest day, everything else overwritten</div>
+      <div class="opt" data-why="Expects the table to enforce a key it was never given">An error: the keys collide</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Partition overwrite makes a re-run safe but files the correction under the day it arrived. Only a merge on the business key replaces what it corrects: Lab 2.2 counted 15 duplicate keys before the merge and 0 after.</div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <aside class="notes"><p>Answer: B. Two minutes. Link forward: the same discipline holds today. Every synthetic file is made from a named input and a fixed seed, so it can be made again and checked.</p></aside>
 </section>
 
-<section class="slide" id="s1-steps" data-lo="LO5">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<!-- ======================= SESSION 1 ======================= -->
+<section class="slide section" id="s1" data-auto="section" data-session="1"></section>
+
+<section class="slide" id="study-tables" data-label="Study tables" data-lo="LO5">
+  <div class="kicker">The data today</div>
+  <h2>Two related tables, split before anyone generates anything</h2>
+  <div class="cols cols-2">
+    <table class="t small">
+      <tr><th>Table</th><th class="num">Train</th><th class="num">Holdout</th></tr>
+      <tr><td>patients (one row each)</td><td class="num">4,151</td><td class="num">1,849</td></tr>
+      <tr><td>encounters (one row per stay)</td><td class="num">9,156</td><td class="num">4,102</td></tr>
+      <tr class="hl"><td>readmitted within 30 days</td><td class="num" colspan="2">about 15% of stays</td></tr>
+    </table>
+    <div class="card c-teal flat"><h4>Why a holdout</h4><p class="small mb0">Generators see only the training patients. The holdout scores utility (Lab 3.3) and is the "never seen" group every attack compares with (Lab 3.4).</p></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>The tables are pseudonymised: study_id, no names. Patient columns: sex, birth year, region, nationality, diabetes, CKD, heart failure, prior admissions, site. Encounter columns: month, length of stay, ward, diagnosis group, number of medicines, creatinine, glucose, discharge, readmitted. The holdout is 30 percent of patients, drawn at random with seed 405.</p></aside>
+</section>
+
+<section class="slide" id="what-synthetic-is-for" data-label="What it is for" data-lo="LO5">
+  <div class="kicker">Synthetic data</div>
+  <h2>A model of the data, sampled: good at patterns, bad at individuals</h2>
+  <div class="cols cols-2">
+    <div class="card c-teal flat"><h4>Good for</h4><ul class="bullets small mb0"><li>Developing and testing code before access to real data</li><li>Teaching and data challenges</li><li>Patterns the generator was built to keep</li></ul></div>
+    <div class="card c-coral flat"><h4>Not for</h4><ul class="bullets small mb0"><li>Exact counts, especially small ones</li><li>Rare groups, outliers, a named patient</li><li>Relationships the generator did not model</li></ul></div>
+  </div>
+  <div class="callout warn mt"><b>And not automatically private.</b> Privacy is a property to measure by attack, not a property of the word.</div>
+  <aside class="notes"><p>Source: Stadler, Oprisanu and Troncoso, "Synthetic Data, Anonymisation Groundhog Day" (USENIX Security 2022): synthetic data does not by default give a better privacy-utility trade-off than older anonymisation, and its gain is hard to predict. Recap from DS-309 Day 2 for anyone who took it: one table, DCR and membership inference. Today: two related tables, per-table attacks and a vendor file.</p></aside>
+</section>
+
+<section class="slide" id="three-options" data-label="Three options" data-lo="LO5">
+  <div class="kicker">The choice</div>
+  <h2>Three ways to answer a request, each with its own residual risk</h2>
+  <table class="t small">
+    <tr><th>Option</th><th>The requester gets</th><th>Residual risk</th></tr>
+    <tr><td><b>Synthetic file</b></td><td>rows drawn from a model of the data</td><td>leaks if the generator memorises; analysis biased where it loses relations</td></tr>
+    <tr><td><b>De-identified extract</b></td><td>real rows, identifiers removed, minimum columns</td><td>still personal data; unique records can be found</td></tr>
+    <tr><td><b>Query service</b></td><td>answers to approved queries, never rows</td><td>outputs can disclose (small cells, differencing); needs people to review</td></tr>
+  </table>
+  <aside class="notes"><p>The pseudonymisation guideline is explicit that pseudonymised data stays personal data and that the extra information must be kept separately. An extract therefore needs a lawful basis, an agreement and controls, exactly as the source table does. A query service is what Day 4's monthly statistics and secure aggregation are versions of.</p></aside>
+</section>
+
+<section class="slide" id="rare-cells" data-label="Rare cells" data-lo="LO5">
+  <div class="kicker">Lab 3.1 · step 2</div>
+  <h2>Small cells are off by more than their own size</h2>
+  <table class="t small">
+    <tr><th>Real count of the cell (region × diagnosis × CKD)</th><th class="num">Cells</th><th class="num">Mean relative error</th><th class="num">Lost</th><th class="num">Invented</th></tr>
+    <tr><td>0</td><td class="num">2</td><td class="num"></td><td class="num">0</td><td class="num">2</td></tr>
+    <tr class="hl"><td>1 to 9</td><td class="num">14</td><td class="num">153%</td><td class="num">2</td><td class="num">0</td></tr>
+    <tr><td>10 to 49</td><td class="num">45</td><td class="num">31%</td><td class="num">0</td><td class="num">0</td></tr>
+    <tr><td>50 and more</td><td class="num">48</td><td class="num">10%</td><td class="num">0</td><td class="num">0</td></tr>
+  </table>
+  <p class="caption">Encounters per cell, real training data against the reference conditional-tree file.</p>
+  <aside class="notes"><p>From the course's run of Lab 3.1. The obstetric patients with CKD (request Q4) are a cell of this kind: two regions with one real case each get none, two regions with none get one. A synthetic count of a rare group is noise around a pattern. The cells that matter most to a pharmacovigilance team are exactly the ones a generator gets wrong.</p></aside>
+</section>
+
+<section class="slide" id="unique-records" data-label="Unique records" data-lo="LO5">
+  <div class="kicker">Lab 3.1 · step 3</div>
+  <h2>A third of patients are unique on five ordinary attributes</h2>
+  <table class="t small">
+    <tr><th>An acquaintance knows</th><th class="num">Patients unique</th></tr>
+    <tr><td>sex, region</td><td class="num">0.0%</td></tr>
+    <tr><td>sex, year of birth, region</td><td class="num">4.2%</td></tr>
+    <tr><td>+ nationality</td><td class="num">11.5%</td></tr>
+    <tr class="hl"><td>+ hospital group</td><td class="num">35.1%</td></tr>
+  </table>
+  <aside class="notes"><p>4,151 training patients. Each added attribute multiplies the combinations; a neighbour or colleague knows all five. Day 4 adds the sequence of stays, which is far worse. This is why an extract is never "anonymous" just because names are gone: it is personal data under a pseudonym.</p></aside>
+</section>
+
+<section class="slide" id="four-requests" data-label="Four requests" data-lo="LO5">
+  <div class="kicker">Lab 3.1 · step 4</div>
+  <h2>The course's decisions, for you to challenge</h2>
+  <table class="t small">
+    <tr><th>Request</th><th>Option</th><th>Because</th></tr>
+    <tr><td>Q1 university model development</td><td>synthetic</td><td>develop on synthetic; final fit by the consortium on real data</td></tr>
+    <tr><td>Q2 exact renal readmissions for the ministry</td><td>query service</td><td>small synthetic cells are off by 153%</td></tr>
+    <tr><td>Q3 public data challenge</td><td>synthetic</td><td>structure, not values; must pass attacks with margin</td></tr>
+    <tr><td>Q4 obstetric patients with CKD</td><td>extract</td><td>actual patients of a rare group; agreement and minimum columns</td></tr>
+  </table>
+  <aside class="notes"><p>Ask tables to argue one row the other way. Good challenges: Q1 could be a query service where the university submits code (a "code-to-data" model); Q4 could be a query service if the team only needs counts. The lab checks only two rules: Q2 must be exact, Q4 cannot be synthetic.</p></aside>
+</section>
+
+<section class="slide" id="check-options" data-label="Checkpoint" data-lo="LO5">
+  <div class="kicker">Checkpoint</div>
+  <h2>Pick the option</h2>
+  <div class="quiz" data-type="single" data-lo="LO5">
+    <p class="lead">The ministry asks for the number of readmissions per region and month, published on a public dashboard. Which option fits?</p>
+    <div class="opts">
+      <div class="opt" data-why="Gives counts that are model draws, wrong most in the small cells a dashboard shows">A synthetic file the ministry counts itself</div>
+      <div class="opt" data-why="Hands patient-level rows to someone who needs only totals">A de-identified extract</div>
+      <div class="opt" data-ok>A query service on the real data, with small counts protected before publication</div>
+      <div class="opt" data-why="Treats publication as private because no rows leave">The exact counts from the real data, as they are</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Counts must come from the real data; but a public count of 1 or 2 can identify someone, so outputs are protected too. Day 4 session 2 does this with a privacy budget.</div>
+  </div>
+  <aside class="notes"><p>Answer: C. D is the common answer: the counts are aggregates, so it feels safe. Differencing two published tables can still isolate a person; this sets up Lab 4.2.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-3-1" data-auto="lab" data-lab="3.1">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: counting patients instead of encounters in the cells; integer subtraction underflow if counts stay unsigned (the solution casts to Int64); filling decisions without a measured number. The stretch's costs are the trainer's estimates: say so, and ask for local ones.</p></aside>
 </section>
 
-<!-- Session 2 -->
-
+<!-- ======================= SESSION 2 ======================= -->
 <section class="slide section" id="s2" data-auto="section" data-session="2"></section>
 
-<section class="slide" id="s2-idea" data-lo="LO3">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
+<section class="slide" id="relation-lost" data-label="The relation" data-lo="LO3">
+  <div class="kicker">Lab 3.2 · step 1</div>
+  <h2>Generate the tables separately and the relation is gone</h2>
   <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+    <table class="t small">
+      <tr><th>Encounters per patient</th><th class="num">No heart failure</th><th class="num">Heart failure</th></tr>
+      <tr><td>Real</td><td class="num">2.14</td><td class="num">3.06</td></tr>
+      <tr><td>Random parent for each stay</td><td class="num">2.21</td><td class="num">2.10</td></tr>
+    </table>
+    <div class="card c-coral flat"><h4>And</h4><p class="small mb0">480 synthetic patients with no stay at all, where every real patient has at least one.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <aside class="notes"><p>From Lab 3.2 step 1 on the training tables. The number of children is part of the parent: sicker patients come back more often. A generator for related tables must model it, and must draw the children of each parent conditioned on that parent.</p></aside>
 </section>
 
-<section class="slide" id="s2-steps" data-lo="LO3">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="two-generators" data-label="Two generators" data-lo="LO3">
+  <div class="kicker">Two generators</div>
+  <h2>A floor, and one that conditions each column on the ones before it</h2>
+  <div class="cols cols-2">
+    <div class="card c-amber flat"><h4>Independent baseline</h4><p class="small mb0">Every column drawn from its own distribution. Perfect marginals, no relationships. The floor any generator must beat.</p></div>
+    <div class="card c-teal flat"><h4>Conditional trees</h4><p class="small mb0">Column by column: a tree fitted on the columns before it, a value copied from a random real row of the same leaf (at least 25 rows). The CART method of synthpop.</p></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <p class="small mt">Both run on a laptop CPU in seconds. SDV's HMASynthesizer is the stretch, in Colab.</p>
+  <aside class="notes"><p>Source for the tree method: Nowok, Raab and Dibben, synthpop (Journal of Statistical Software, 2016), which uses classification and regression trees as its default. SDV's HMASynthesizer is a hierarchical model of the same idea: parent table with child-count and child-parameter columns. It installs a deep-learning stack, which is why it is the Colab stretch and not the core lab. The course writes its own small generator so that every step is visible.</p></aside>
+</section>
+
+<section class="slide" id="tree-draw" data-label="One column" data-lo="LO3">
+  <div class="kicker">Lab 3.2 · step 3</div>
+  <h2>Drawing one column</h2>
+  <div class="flow">
+    <div class="step c-teal"><b>1 · Fit</b>a tree: this column from the columns before it, on real rows</div>
+    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · Drop</b>each synthetic row into the tree: which leaf?</div>
+    <div class="arrow frag" data-frag="c">→</div><div class="step c-purple frag" data-frag="c"><b>3 · Copy</b>the value of a random real row in that leaf</div>
+  </div>
+  <div class="callout tip mt frag"><b>Takeaway.</b> The leaf size is the dial: small leaves keep relations and copy people; large leaves blur both.</div>
+  <aside class="notes"><p>Press once per step. The patient table is drawn with the number of encounters as its last column, so it depends on the conditions. The encounter table is drawn with the parent's columns and enc_seq (the place in the history) as context. Ask: what happens with a leaf size of 1? (Every value comes from one real row with the same context: a copy.)</p></aside>
+</section>
+
+<section class="slide" id="what-each-kept" data-label="What each kept" data-lo="LO3">
+  <div class="kicker">Lab 3.2 · step 5</div>
+  <h2>The trees keep what the study needs; the baseline keeps columns</h2>
+  <table class="t small">
+    <tr><th></th><th class="num">Stays per HF patient</th><th class="num">Readmission, HF ÷ not</th><th class="num">Repeat ÷ first stay</th><th class="num">Corr. CKD, creatinine</th></tr>
+    <tr><td>Real</td><td class="num">3.06</td><td class="num">2.07</td><td class="num">1.69</td><td class="num">0.77</td></tr>
+    <tr><td>Independent</td><td class="num">2.28</td><td class="num">1.16</td><td class="num">0.98</td><td class="num">0.00</td></tr>
+    <tr class="hl"><td>Conditional trees</td><td class="num">2.95</td><td class="num">1.91</td><td class="num">1.54</td><td class="num">0.77</td></tr>
+  </table>
+  <p class="caption">No orphan encounters and every patient's stays numbered 1..n, in both files.</p>
+  <aside class="notes"><p>Integrity first: orphans and numbering. Then the relations the study relies on. The trees keep them, slightly weakened; the baseline loses them all. An earlier draft of the course used a Gaussian copula here: it weakened the CKD-creatinine correlation to 0.24, because rare yes/no columns lose most of their correlation through the copula's normal scores. That is a good story to tell if someone proposes a copula.</p></aside>
+</section>
+
+<section class="slide" id="check-relation" data-label="Checkpoint" data-lo="LO3">
+  <div class="kicker">Checkpoint</div>
+  <h2>Where the child count goes</h2>
+  <div class="quiz" data-type="single" data-lo="LO3">
+    <p class="lead">A colleague fits one generator to patients and another to encounters, then assigns each synthetic encounter to a random synthetic patient. What breaks first?</p>
+    <div class="opts">
+      <div class="opt" data-ok>Who comes back: stays per patient no longer depend on the patient's conditions</div>
+      <div class="opt" data-why="Integrity can hold perfectly while the relation is lost">Referential integrity: encounters with no patient</div>
+      <div class="opt" data-why="Each table on its own is generated as before">The marginal distribution of each column</div>
+      <div class="opt" data-why="Assumes the outcome's average changes when only its link to patients is lost">The overall readmission rate</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Random parents keep every column and every link, but heart-failure patients get 2.10 stays instead of 3.06, and some patients get none.</div>
+  </div>
+  <aside class="notes"><p>Answer: A. B is tempting: but random assignment always picks an existing patient, so there are no orphans, only wrong parents.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-3-2" data-auto="lab" data-lab="3.2">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: coding text columns differently for real and synthetic rows (U.codes takes the real column as reference for that reason); forgetting that the first parent column has no context; enc_seq numbering that starts at 0. Anyone stuck in step 3 or 4 continues with the reference file automatically. The SDV stretch needs Colab and several minutes to install.</p></aside>
 </section>
 
-<!-- Session 3 -->
-
+<!-- ======================= SESSION 3 ======================= -->
 <section class="slide section" id="s3" data-auto="section" data-session="3"></section>
 
-<section class="slide" id="s3-idea" data-lo="LO3">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
-  </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+<section class="slide" id="fidelity-vs-fitness" data-label="Fidelity" data-lo="LO3">
+  <div class="kicker">Lab 3.3 · step 1</div>
+  <h2>Fidelity scores say the baseline is nearly perfect</h2>
+  <table class="t small">
+    <tr><th></th><th class="num">Mean marginal distance</th><th class="num">Correlation gap</th></tr>
+    <tr><td>Independent</td><td class="num">0.015</td><td class="num">0.064</td></tr>
+    <tr><td>Conditional trees</td><td class="num">0.010</td><td class="num">0.013</td></tr>
+    <tr><td>Vendor</td><td class="num">0.000</td><td class="num">0.000</td></tr>
+  </table>
+  <p class="small mt">Kolmogorov-Smirnov for numbers, total variation distance for categories; 0 is identical.</p>
+  <aside class="notes"><p>Marginals alone rank the baseline close to the trees. The correlation gap separates them, but neither number says whether the study's answer survives. Note the vendor at exactly 0: hold that thought for session 4.</p></aside>
 </section>
 
-<section class="slide" id="s3-steps" data-lo="LO3">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="tstr" data-label="TSTR" data-lo="LO3">
+  <div class="kicker">Lab 3.3 · steps 2 and 3</div>
+  <h2>Train on synthetic, test on the real holdout</h2>
+  <table class="t small">
+    <tr><th>Model trained on</th><th class="num">AUC on the real holdout</th><th class="num">Gap to real</th></tr>
+    <tr><td>Real training data (TRTR)</td><td class="num">0.706</td><td class="num">0</td></tr>
+    <tr><td>Independent</td><td class="num">0.665</td><td class="num">0.041</td></tr>
+    <tr class="hl"><td>Conditional trees</td><td class="num">0.705</td><td class="num">0.001</td></tr>
+    <tr><td>Vendor</td><td class="num">0.706</td><td class="num">0.000</td></tr>
+  </table>
+  <aside class="notes"><p>The study's logistic model with eleven features. Why does the baseline score 0.665 when its outcome is random? Its model gives small positive weights to risk factors, and any positive sum of real risk factors ranks real patients somewhat. The gap is the evidence, not the AUC. The stretch repeats this with gradient boosting: on the full tables it scored 0.674 on real and 0.656 on trees, below the logistic model.</p></aside>
+</section>
+
+<section class="slide" id="study-estimate" data-label="The estimate" data-lo="LO3">
+  <div class="kicker">Lab 3.3 · step 4</div>
+  <h2>The study's own number: does heart failure double the risk?</h2>
+  <table class="t small">
+    <tr><th>Data</th><th class="num">Risk ratio, HF vs not</th><th class="num">95% interval</th></tr>
+    <tr><td>Real</td><td class="num">2.07</td><td class="num">1.84 to 2.33</td></tr>
+    <tr><td>Independent</td><td class="num">1.16</td><td class="num">0.96 to 1.41</td></tr>
+    <tr class="hl"><td>Conditional trees</td><td class="num">1.91</td><td class="num">1.68 to 2.17</td></tr>
+  </table>
+  <div class="callout warn mt"><b>The baseline would publish "no clear effect".</b> Its interval includes 1.</div>
+  <aside class="notes"><p>Utility is judged against the analysis the requester will run, not against a generic score. For the university that is a risk model; for Atiyah it is this ratio. The trees' estimate is inside the real interval but lower: generators tend to shrink effects, which is why the final fit is on real data in the Q1 decision.</p></aside>
+</section>
+
+<section class="slide" id="check-utility" data-label="Checkpoint" data-lo="LO3">
+  <div class="kicker">Checkpoint</div>
+  <h2>What proves utility</h2>
+  <div class="quiz" data-type="single" data-lo="LO3">
+    <p class="lead">A generator's report shows every column's distribution within 2% of the real one. The university asks whether its readmission model will work. What do you answer?</p>
+    <div class="opts">
+      <div class="opt" data-why="Takes column-by-column similarity as evidence for relationships">Yes: the distributions match</div>
+      <div class="opt" data-why="Tests on data the generator learnt from, which rewards copying">Train on synthetic and test on the real training data</div>
+      <div class="opt" data-ok>Not known yet: train on synthetic, test on a real holdout, and compare the study's estimates</div>
+      <div class="opt" data-why="Dismisses a measurable question">No synthetic data can support a model</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> The independent baseline matches every marginal and still shrinks the heart-failure effect from 2.07 to 1.16.</div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Answer: C. B is the subtle one: testing on the training patients rewards a generator that copies them.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-3-3" data-auto="lab" data-lab="3.3">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: categorical columns treated as numbers in the KS statistic (the solution uses the distance for categories when there are 12 values or fewer); fitting on holdout by mistake; reading the AUC without the gap. The full run takes about a minute; logistic regression on 9,000 rows is quick.</p></aside>
 </section>
 
-<!-- Session 4 -->
-
+<!-- ======================= SESSION 4 ======================= -->
 <section class="slide section" id="s4" data-auto="section" data-session="4"></section>
 
-<section class="slide" id="s4-idea" data-lo="LO3">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
+<section class="slide" id="attacks" data-label="Attacks" data-lo="LO3">
+  <div class="kicker">Privacy by attack</div>
+  <h2>Two attacks, both against a group the generator never saw</h2>
   <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+    <div class="card c-teal flat"><h4>Distance to closest record</h4><p class="small mb0">For each synthetic record: is the nearest real record a member (training) or a non-member (holdout)? No copying: about 0.5.</p></div>
+    <div class="card c-purple flat"><h4>Membership inference</h4><p class="small mb0">For each real record: score "was in training" by its distance to the nearest synthetic record. AUC 0.5 is guessing, 1.0 is certainty.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <p class="small mt">Members are a random 1,849 of the training patients, as many as the holdout.</p>
+  <aside class="notes"><p>Equal group sizes make 0.5 the no-leak value for both measures. Distances: each column coded and scaled by its spread in the training data, then Euclidean. Patients are compared with patients, encounters with encounters, because a generator can be safe on one table and copy the other.</p></aside>
 </section>
 
-<section class="slide" id="s4-steps" data-lo="LO3">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="twins" data-label="Exact twins" data-lo="LO3">
+  <div class="kicker">Lab 3.4 · step 1</div>
+  <h2>Exact twins prove little; the difference from the holdout does</h2>
+  <div class="cols cols-2">
+    <div class="stat center"><div class="big">27%</div><div class="lbl">of members have an exact twin in the trees' patient table</div></div>
+    <div class="stat center"><div class="big">21%</div><div class="lbl">of non-members, never seen by the generator, have one too</div></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Nine coarse attributes: many real people share a combination, so a synthetic patient often matches someone exactly by chance. Counting exact matches alone over-states risk for coarse tables and under-states it for detailed ones. The comparison with the holdout is what calibrates it.</p></aside>
+</section>
+
+<section class="slide" id="attack-results" data-label="Results" data-lo="LO3">
+  <div class="kicker">Lab 3.4 · steps 2 to 5</div>
+  <h2>Per table: the trees pass narrowly, the vendor fails outright</h2>
+  <table class="t small">
+    <tr><th>Generator</th><th>Table</th><th class="num">DCR share</th><th class="num">Membership AUC</th><th>Passes</th></tr>
+    <tr><td>Independent</td><td>patients / encounters</td><td class="num">0.49 / 0.50</td><td class="num">0.52 / 0.51</td><td>yes</td></tr>
+    <tr class="hl"><td>Trees</td><td>patients / encounters</td><td class="num">0.52 / 0.50</td><td class="num">0.55 / 0.51</td><td>yes</td></tr>
+    <tr><td>Vendor</td><td>patients / encounters</td><td class="num">0.69 / 0.72</td><td class="num">0.90 / 1.00</td><td>no</td></tr>
+  </table>
+  <p class="caption">Thresholds set by the release board before the results: DCR share ≤ 0.55, AUC ≤ 0.60.</p>
+  <aside class="notes"><p>The trees' patient table sits at 0.55 AUC: a small, measurable lean towards members, under the board's threshold. Say plainly that thresholds are a policy choice: the course's are illustrative, and they must be fixed before looking at results. The linked-history stretch gave 0.52 (independent), 0.53 (trees) and 1.00 (vendor).</p></aside>
+</section>
+
+<section class="slide" id="vendor" data-label="Vendor file" data-lo="LO3">
+  <div class="kicker">Lab 3.4 · step 4</div>
+  <h2>"Fully synthetic, privacy-safe": 90% of real stays are still there</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>New identifiers <code>V000001</code>…</li>
+      <li>1% noise on creatinine and glucose</li>
+      <li>Everything else: the real rows</li>
+    </ul>
+    <div class="card c-coral flat"><h4>Measured</h4><p class="small mb0">90% of real training encounters have a vendor record within 0.05 in scaled distance. Membership AUC on encounters: 1.00.</p></div>
+  </div>
+  <div class="callout warn mt"><b>"Synthetic" names a process, not a property.</b> Ask for the method, the holdout and the attack results per table, or run them yourself.</div>
+  <aside class="notes"><p>The vendor file was also "the best" on fidelity and utility in session 3: zero distance, identical AUC. Perfect utility from a generator is a warning sign. This is the planted problem of Day 3; the capstone defence asks each participant to re-run one attack live.</p></aside>
+</section>
+
+<section class="slide" id="check-attack" data-label="Checkpoint" data-lo="LO3">
+  <div class="kicker">Checkpoint</div>
+  <h2>Reading an attack</h2>
+  <div class="quiz" data-type="single" data-lo="LO3">
+    <p class="lead">A membership-inference test on a synthetic encounter table gives an AUC of 0.51; on the patient table, 0.88. What do you conclude?</p>
+    <div class="opts">
+      <div class="opt" data-why="Averages away the table that leaks">The release is safe on average</div>
+      <div class="opt" data-why="Assumes coarse attributes cannot identify anyone">Patient attributes are coarse, so the 0.88 does not matter</div>
+      <div class="opt" data-why="Reads an AUC near 0.5 as a failure of the attack rather than as protection">The encounter test failed and should be re-run</div>
+      <div class="opt" data-ok>The patient table leaks its training patients; the release fails until it is fixed</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> A release passes only if every table passes: an attacker uses the weakest one, and the tables link through the identifier.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. B is tempting after the exact-twins slide: coarse attributes produce chance matches, but those affect members and non-members equally; 0.88 means members are found far more often.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-3-4" data-auto="lab" data-lab="3.4">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: using all 4,151 training patients as members against 1,849 non-members (0.5 is then no longer the no-leak value); coding text differently in two tables; reading exact matches as the result. The run takes about a minute; nearest neighbours on 9,000 rows are fast on a laptop.</p></aside>
 </section>
 
-<section class="slide" id="wrap-up">
+<!-- ======================= CLOSING ======================= -->
+<section class="slide" id="wrap-up" data-label="Recap">
   <div class="kicker">Day 3 · wrap-up</div>
   <h2>Three things to keep</h2>
   <div class="cols cols-3">
-    <div class="card c-teal"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-coral"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-purple"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
+    <div class="card c-teal"><h4>Choose the option</h4><p class="small mb0">Synthetic for patterns; extracts for actual patients under agreement; a query service for exact counts.</p></div>
+    <div class="card c-coral"><h4>Utility against the analysis</h4><p class="small mb0">Train on synthetic, test on real, and compare the study's own estimate.</p></div>
+    <div class="card c-purple"><h4>Privacy by attack</h4><p class="small mb0">Per table and linked, against a holdout, with thresholds set first.</p></div>
   </div>
+  <aside class="notes"><p>The capstone's "synthetic data validation" criterion (25 points) is these three. Ask each participant which of the three requests R-A, R-B and R-C they lean towards.</p></aside>
 </section>
 
 <section class="slide dark" id="next" data-label="Next">
   <div class="kicker">Next</div>
   <h2>Day 4: Protect and decide</h2>
-  <p class="lead">REPLACE: what participants prepare before then; unfinished labs can be finished at home</p>
-  <aside class="notes">REPLACE: accounts, installs or reading participants need before the next unit</aside>
+  <p class="lead">Encounter sequences, monthly statistics under one budget, a rate pooled without pooling records, and the release decision for the university.</p>
+  <aside class="notes"><p>Day 4 also uses only the committed study tables. OpenDP is already in the environment from the setup check.</p></aside>
 </section>

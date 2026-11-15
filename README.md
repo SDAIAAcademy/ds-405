@@ -129,6 +129,7 @@ Each line is a capability; the examples are interchangeable.
 
 - [Schnell, Bachteler, Reiher: Privacy-preserving record linkage using Bloom filters (2009)](https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/1472-6947-9-41)
 - [Stadler, Oprisanu, Troncoso: Synthetic Data, Anonymisation Groundhog Day (USENIX Security 2022)](https://www.usenix.org/conference/usenixsecurity22/presentation/stadler)
+- [Nowok, Raab, Dibben: synthpop, bespoke creation of synthetic data in R (J. Stat. Softw. 2016)](https://www.jstatsoft.org/article/view/v074i11)
 - [Synthetic Data Vault: HMASynthesizer](https://docs.sdv.dev/sdv/multi-table-data/modeling/synthesizers/hmasynthesizer)
 - [synthcity](https://github.com/vanderschaarlab/synthcity)
 - [Dwork and Roth: The Algorithmic Foundations of Differential Privacy](https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf)

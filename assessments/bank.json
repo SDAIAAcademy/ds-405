@@ -465,6 +465,267 @@
       "level": "apply",
       "pool": "practice",
       "weight": 1
+    },
+    {
+      "id": "q-d3-rare-group",
+      "type": "single",
+      "prompt": "A pharmacovigilance team needs the actual records of patients in a rare group (obstetric stays with chronic kidney disease). Which option fits?",
+      "options": [
+        "A synthetic file of the whole study",
+        "A de-identified extract of that group under an agreement, with minimum columns",
+        "Monthly counts from a query service",
+        "A synthetic file restricted to that group"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Only real records serve case review; a synthetic file loses or invents rare cells. The extract is still personal data, so it needs an agreement and controls.",
+      "misconceptions": [
+        "Expects a generator to reproduce the members of a rare group",
+        "",
+        "Gives totals to a team that must review cases",
+        "Assumes conditioning on a rare group makes its records real"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day3",
+      "session": 1,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d3-small-counts",
+      "type": "single",
+      "prompt": "In a synthetic file, cells with fewer than 10 real encounters are off by 153% on average and cells with 50 or more by 10%. What follows for a request for exact small counts?",
+      "options": [
+        "Use the synthetic file but round the counts",
+        "Generate a larger synthetic file to reduce the error",
+        "Use the synthetic file: 10% is acceptable",
+        "Answer from the real data through a query service, protecting small counts before publication"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Synthetic counts are draws from a model and are worst exactly where small counts matter; exact counts come from the real data, with output protection.",
+      "misconceptions": [
+        "Treats a model's draw as a count with rounding error",
+        "Expects more draws from the same model to recover exact rare counts",
+        "Reads the large-cell error as if it applied to small cells",
+        ""
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day3",
+      "session": 1,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d3-university-plan",
+      "type": "single",
+      "prompt": "A university wants patient-level rows to develop a readmission model. Which plan states its residual risk honestly?",
+      "options": [
+        "Send a synthetic file: synthetic data carries no risk",
+        "Send the pseudonymised table: no names are in it",
+        "A synthetic file for development, released only after per-table attacks pass, with the final model fitted on real data by the consortium",
+        "Refuse: no option is safe"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The synthetic file serves development; its privacy is shown by attacks and its utility by the gap to the real model, which is why the final fit stays on real data.",
+      "misconceptions": [
+        "Takes the word synthetic as a privacy guarantee",
+        "Forgets that pseudonymised data stays personal data",
+        "",
+        "Ignores options whose risk can be measured and controlled"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day3",
+      "session": 1,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d3-relation",
+      "type": "single",
+      "prompt": "Encounters are generated with one model and patients with another, and each encounter gets a random patient. What is lost?",
+      "options": [
+        "How the number and kind of stays depend on the patient",
+        "Referential integrity between the two tables",
+        "The distribution of each encounter column",
+        "Nothing, if both models are good"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The child count and the children's values depend on the parent; random parents keep every column and lose the relation (stays per heart-failure patient fell from 3.06 to 2.10).",
+      "misconceptions": [
+        "",
+        "Thinks random assignment creates orphans, when every encounter still has a patient",
+        "Expects the separate models to change their own marginals",
+        "Assumes good tables make a good relation"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day3",
+      "session": 2,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d3-leaf",
+      "type": "single",
+      "prompt": "In a conditional-tree generator, each value is copied from a random real row in the same leaf, and every leaf holds at least 25 real rows. What does raising the leaf size do?",
+      "options": [
+        "Keeps relationships better and copies less",
+        "Has no effect: the leaf only affects speed",
+        "Increases copying, because larger leaves hold more real rows",
+        "Copies less and blurs relationships the analysis needs"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A larger leaf draws each value from a broader context: less like any one person, and less faithful to the relations between columns.",
+      "misconceptions": [
+        "Assumes privacy and utility move together",
+        "Misses that the leaf is the context a value is drawn from",
+        "Confuses more rows to draw from with closer copies",
+        ""
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day3",
+      "session": 2,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d3-tstr",
+      "type": "single",
+      "prompt": "A generator matches every column's distribution within 2%. Trained on its data, the readmission model scores AUC 0.665 on the real holdout; trained on real data, 0.706. What do you report?",
+      "options": [
+        "Utility is high: the marginals match",
+        "The file loses relationships the model relies on: a gap of 0.041 to the real model",
+        "The test is wrong: AUC should be measured on the synthetic data",
+        "Utility cannot be measured without the generator's code"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Train-on-synthetic, test-on-real measures fitness for the study; the gap to the real model is the evidence, whatever the fidelity scores say.",
+      "misconceptions": [
+        "Takes column fidelity as fitness for the analysis",
+        "",
+        "Scores the model on the data it was trained on",
+        "Thinks utility depends on the method rather than on the output"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day3",
+      "session": 3,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d3-estimate",
+      "type": "single",
+      "prompt": "On real data the readmission risk ratio for heart failure is 2.07 (1.84 to 2.33). On a synthetic file it is 1.16 (0.96 to 1.41). What does this mean for the study?",
+      "options": [
+        "The synthetic file is fine: both show heart failure raises risk",
+        "The synthetic file is more private, so its estimate is better",
+        "A study run on it would report no clear effect: the file is not fit for this analysis",
+        "Average the two estimates"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Utility is judged on the analysis's own estimate; this file shrinks the effect towards 1 and would change the study's conclusion.",
+      "misconceptions": [
+        "Ignores that one interval includes no effect",
+        "Confuses privacy with correctness of an estimate",
+        "",
+        "Combines a biased estimate with an unbiased one"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day3",
+      "session": 3,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d3-vendor",
+      "type": "single",
+      "prompt": "A vendor's synthetic file gives a membership-inference AUC of 1.00 on encounters and 0.90 on patients. What do you tell the release board?",
+      "options": [
+        "The file copies its training records: it fails, whatever it is called",
+        "The attack is broken: a synthetic file cannot score 1.00",
+        "It passes on average across tables",
+        "Exact twins in coarse tables explain it; accept the file"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Members are found with certainty: the file reproduces real stays under new identifiers. A release passes only if every table passes.",
+      "misconceptions": [
+        "",
+        "Trusts the label over the measurement",
+        "Averages away the weakest table an attacker would use",
+        "Forgets that chance matches affect non-members equally"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day3",
+      "session": 4,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d3-holdout",
+      "type": "single",
+      "prompt": "Why compare synthetic records with a holdout the generator never saw, rather than count exact matches with the training data?",
+      "options": [
+        "Exact matches are too slow to compute",
+        "The holdout is larger, so the test is more precise",
+        "Exact matches are always zero in good synthetic data",
+        "Chance matches happen for anyone; only members being closer than non-members shows memorisation"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "On coarse attributes about a fifth of never-seen patients have exact twins; the leak is the difference between members and non-members.",
+      "misconceptions": [
+        "Gives a speed reason for a question of evidence",
+        "Misremembers the role of the holdout",
+        "Expects no chance matches on coarse attributes",
+        ""
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day3",
+      "session": 4,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
     }
   ]
 }

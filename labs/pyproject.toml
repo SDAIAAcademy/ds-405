@@ -18,6 +18,7 @@ dependencies = [
     "jupyterlab>=4.4",
     "nbclient>=0.10",
     "ipykernel>=6.29",
+    "scipy>=1.18.1",
 ]
 
 [tool.uv]

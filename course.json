@@ -480,7 +480,7 @@
           "summary": "Generators for a parent table and a child table that keep the relation: child counts and conditioning on the parent",
           "outcomes": [
             "Explain why tables generated separately break the parent-child relation",
-            "Fit a baseline generator and a hierarchical copula generator to two related tables",
+            "Fit a baseline generator and a conditional-tree generator to two related tables",
             "Check referential integrity and child counts of the synthetic tables"
           ],
           "lo": [
@@ -490,7 +490,7 @@
             "id": "3.2",
             "title": "Two generators for related tables",
             "minutes": 25,
-            "summary": "Fit two generators to the patient and encounter tables, an independent baseline and a hierarchical copula that keeps the parent-child relation, and check what each kept.",
+            "summary": "Fit two generators to the patient and encounter tables, an independent baseline and conditional trees that keep the parent-child relation, and check what each kept.",
             "href": "D3_2_relational_generators.ipynb",
             "steps": [
               {
@@ -502,7 +502,7 @@
                 "minutes": 5
               },
               {
-                "text": "The copula: parents with their child counts",
+                "text": "Conditional trees: parents with their child counts",
                 "minutes": 7
               },
               {
@@ -927,6 +927,10 @@
         {
           "title": "Stadler, Oprisanu, Troncoso: Synthetic Data, Anonymisation Groundhog Day (USENIX Security 2022)",
           "url": "https://www.usenix.org/conference/usenixsecurity22/presentation/stadler"
+        },
+        {
+          "title": "Nowok, Raab, Dibben: synthpop, bespoke creation of synthetic data in R (J. Stat. Softw. 2016)",
+          "url": "https://www.jstatsoft.org/article/view/v074i11"
         },
         {
           "title": "Synthetic Data Vault: HMASynthesizer",

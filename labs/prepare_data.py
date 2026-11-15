@@ -15,7 +15,7 @@ What it writes
                Ufuq's version 2 sample (Lab 1.4)
   truth/       the planted truth: which local patient is which person (Lab 1.3)
   study/       pseudonymised study tables: patients and encounters, train and holdout (Days 3 and 4)
-  study/synthetic/  reference synthetic tables of two generators and a vendor's file (Labs 3.3, 3.4)
+  study/synthetic/  reference synthetic tables of two generators and a vendor's file (_tools/synth_reference.py)
   reference/   reference results for the safety-net cells, computed here from the planted answers
 The partitioned lake of Day 2 is not committed: rimah_lake.py writes it on demand.
 """
@@ -295,8 +295,9 @@ def main(out: Path):
     pts, senc = make_study(srng, 6000)
     pts = split_study(srng, pts)
     write_study(pts, senc, out)
-    import rimah_synth
-    rimah_synth.write_reference_synthetic(out)
+    sys.path.insert(0, str(HERE / "_tools"))
+    import synth_reference
+    synth_reference.write_reference_synthetic(out)
     (out / "reference").mkdir(parents=True, exist_ok=True)
     (out / "reference" / "planted.json").write_text(json.dumps(planted, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     print("data written:", out)
