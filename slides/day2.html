@@ -115,7 +115,7 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
   <div class="quiz" data-type="single" data-lo="LO2">
     <p class="lead">Your lazy query on the lake is fast but its peak memory is the same as the eager script's. Which change most likely helps?</p>
     <div class="opts">
-      <div class="opt" data-why="Assumes a bigger file format fixes a query that reads too much">Convert the Parquet files to CSV</div>
+      <div class="opt" data-why="Removes the partitions that let the scan skip whole files, so even more is read">Rewrite the lake as one unpartitioned Parquet file, so fewer files are opened</div>
       <div class="opt" data-why="Adds threads to a problem of bytes read">Run it on more CPU cores</div>
       <div class="opt" data-why="Caches the very data that should never have been loaded">Collect the labs table first, then filter it</div>
       <div class="opt" data-ok>Read the plan: put the month and test filters on the scan and select only needed columns</div>

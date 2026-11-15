@@ -129,7 +129,8 @@ U.check(by_rule.get("Secondary use: academic applicant applies through the insti
 U.check(by_rule.get("Secondary use: minimum necessary data") != "met", "'all columns' is not the minimum necessary")
 
 # %% [markdown]
-# 🔍 Three requirements are not met before any question of method arises. The decision cannot be
+# 🔍 Five requirements are not met before any question of method arises: three secondary-use rules
+# for the applicant, and authorised access and data security. The decision cannot be
 # "approved"; it can say exactly what must change and what will then be released.
 
 # %% [markdown]
