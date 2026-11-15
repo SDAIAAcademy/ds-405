@@ -25,3 +25,32 @@
 | Day 4 | Session 4 · The release decision | [`D4_4_release_decision.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ds-405/blob/main/labs/D4_4_release_decision.ipynb) |
 
 The notebooks are generated from the percent-format sources in `labs/_src/` by `labs/_tools/py2nb.py` (`uv run python _tools/py2nb.py` from `labs/`), which also writes the solutions to `labs/solutions/`. Edit the sources, not the notebooks.
+
+## Running locally
+
+```bash
+cd labs
+uv sync                          # Python 3.12 and the packages in pyproject.toml
+uv run jupyter lab               # start with 00_setup_check.ipynb
+```
+
+Set `RIMAH_QUICK=1` before starting Jupyter on a laptop with less than 8 GB of free memory: the
+Day 2 lake is then written at 1 percent (about 300,000 rows instead of 30 million). In Colab,
+`requirements-colab.txt` adds the packages Colab lacks.
+
+## Data and references
+
+| What | Where | Made by |
+|---|---|---|
+| Producer extracts, contracts, linkage truth (Day 1) | `data/producers/`, `data/contracts/`, `data/truth/` | `prepare_data.py` (seed 405, committed) |
+| Partitioned lake and landing days (Day 2) | `data/lake/` (not committed) | `rimah_lake.py`, called by the labs' first cells |
+| Study tables, train and holdout (Days 3 and 4) | `data/study/` | `prepare_data.py` (committed) |
+| Reference synthetic pairs: independent, trees, vendor | `data/study/synthetic/` | `_tools/synth_reference.py`, called by `prepare_data.py` |
+| Safety-net results of each exercise | `data/reference/lab_*.json` | `_tools/make_references.py` (runs the solutions in quick mode) |
+
+`uv run python prepare_data.py --check` regenerates the data in a temporary folder and compares it
+byte for byte with the committed files. Delete `artifacts/` and `data/lake/` before running
+`academy check`: both are ignored by git and the check reports ignored files in `labs/`.
+
+Everything is synthetic: every person, identifier and record. No lab calls a language model or
+downloads one.
