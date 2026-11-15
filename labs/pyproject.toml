@@ -1,0 +1,25 @@
+[project]
+name = "ds-405-labs"
+version = "2027.1.0"
+description = "Lab notebooks for the SDAIA Academy course DS-405 Data Preparation at Scale: Contracts, Synthetic Data and Privacy"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "polars>=2.0",
+    "duckdb>=1.4",
+    "deltalake>=1.4",
+    "pyarrow>=20.0",
+    "pandas>=2.2",
+    "numpy>=2.0",
+    "scikit-learn>=1.6",
+    "matplotlib>=3.9",
+    "opendp>=0.16",
+    "pyyaml>=6.0",
+    "psutil>=7.0",
+    "jupyterlab>=4.4",
+    "nbclient>=0.10",
+    "ipykernel>=6.29",
+]
+
+[tool.uv]
+package = false
+# Nothing in these labs calls a language model or downloads one.

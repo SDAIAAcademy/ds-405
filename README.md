@@ -5,7 +5,7 @@
 
 Data Science Track · SDAIA Academy · DS-405 · Level 400
 
-REPLACE: one line under the title: what participants can do after the course
+Contract and link several data producers, prepare 30 million rows idempotently on a laptop, and release health data only after measuring its utility and its risk
 
 Participants run data preparation for the fictional Rimah Health Data Consortium: three hospital groups send encounter, laboratory and pharmacy extracts (about 30 million synthetic rows) for a readmission study, and a university partner wants a copy. They contract and link the producers, rebuild preparation as an incremental pipeline over partitioned columnar tables, generate and attack synthetic versions, compare privacy-enhancing methods for four requests, and write a release decision a privacy officer could sign. Single-table contracts come from DS-311; de-identification and basic differential privacy from DS-309.
 
@@ -34,7 +34,7 @@ Participants run data preparation for the fictional Rimah Health Data Consortium
 | Day 2 | Prepare at scale | Columnar files and lazy execution; Incremental and idempotent loads; Tables with history; Gates and lineage at scale | [`slides/day2.html`](slides/day2.html) |
 | Day 3 | Synthesise and attack | When synthetic data fits; Generating related tables; Utility is measured against the analysis; Privacy is measured by attack | [`slides/day3.html`](slides/day3.html) |
 | Day 4 | Protect and decide | Disclosure risk in longitudinal records; Privacy budgets over many releases; Analysis without pooling records; The release decision | [`slides/day4.html`](slides/day4.html) |
-| Capstone | Capstone project presentations |  | [`slides/capstone.html`](slides/capstone.html) |
+| Capstone | Capstone: a release package and its defence |  | [`slides/capstone.html`](slides/capstone.html) |
 <!-- /academy:units -->
 
 ## Case study
@@ -48,22 +48,22 @@ Every lab is a notebook in `labs/`. Open it in Google Colab from the course page
 
 | | Session | Lab | File |
 |---|---|---|---|
-| 1.1 | Day 1 · Session 1 | Profile three producers' encounter extracts and list where schema, codes and units disagree | [`D1_1_profile_three_producers.ipynb`](labs/D1_1_profile_three_producers.ipynb) |
-| 1.2 | Day 1 · Session 2 | Write a shared contract in an open standard with code mappings, unit rules and freshness, and run it against all three extracts | [`D1_2_write_shared_contract.ipynb`](labs/D1_2_write_shared_contract.ipynb) |
-| 1.3 | Day 1 · Session 3 | Generate a keyed-hash linkage identifier at each producer and measure the match rate against the planted truth | [`D1_3_generate_keyed_hash.ipynb`](labs/D1_3_generate_keyed_hash.ipynb) |
-| 1.4 | Day 1 · Session 4 | Draft the policy (what counts as breaking, notice periods, who approves) and test it on a seeded producer change | [`D1_4_draft_policy_what.ipynb`](labs/D1_4_draft_policy_what.ipynb) |
-| 2.1 | Day 2 · Session 1 | Rewrite an eager cleaning script as a lazy query over partitioned files and compare time and memory | [`D2_1_rewrite_eager_cleaning.ipynb`](labs/D2_1_rewrite_eager_cleaning.ipynb) |
-| 2.2 | Day 2 · Session 2 | Make the daily load idempotent and prove it by loading one day twice | [`D2_2_make_daily_load.ipynb`](labs/D2_2_make_daily_load.ipynb) |
-| 2.3 | Day 2 · Session 3 | Rebuild last month's analysis set from a table snapshot | [`D2_3_rebuild_last_month.ipynb`](labs/D2_3_rebuild_last_month.ipynb) |
-| 2.4 | Day 2 · Session 4 | Run blocking rules per partition and trace a seeded defect to its producer and partition through lineage events | [`D2_4_run_blocking_rules.ipynb`](labs/D2_4_run_blocking_rules.ipynb) |
-| 3.1 | Day 3 · Session 1 | Decide for four requests between synthetic data, a de-identified extract and a query service | [`D3_1_decide_four_requests.ipynb`](labs/D3_1_decide_four_requests.ipynb) |
-| 3.2 | Day 3 · Session 2 | Fit two generators to the patient and encounter tables, keeping the parent-child relation | [`D3_2_fit_two_generators.ipynb`](labs/D3_2_fit_two_generators.ipynb) |
-| 3.3 | Day 3 · Session 3 | Train the readmission model on synthetic data, test on real data and compare | [`D3_3_train_readmission_model.ipynb`](labs/D3_3_train_readmission_model.ipynb) |
-| 3.4 | Day 3 · Session 4 | Run distance-to-closest-record and membership-inference tests on each synthetic table | [`D3_4_run_distance_closest.ipynb`](labs/D3_4_run_distance_closest.ipynb) |
-| 4.1 | Day 4 · Session 1 | Measure re-identification risk when encounter sequences act as quasi-identifiers and compare it with the single-table estimate | [`D4_1_measure_re_identification.ipynb`](labs/D4_1_measure_re_identification.ipynb) |
-| 4.2 | Day 4 · Session 2 | Allocate a budget across twelve monthly statistics and plot error against budget | [`D4_2_allocate_budget_across.ipynb`](labs/D4_2_allocate_budget_across.ipynb) |
-| 4.3 | Day 4 · Session 3 | Compute a cross-site readmission rate with a simulated secure-aggregation protocol | [`D4_3_compute_cross_site.ipynb`](labs/D4_3_compute_cross_site.ipynb) |
-| 4.4 | Day 4 · Session 4 | Draft the decision for the university request: method, residual risk, conditions, approver | [`D4_4_draft_decision_university.ipynb`](labs/D4_4_draft_decision_university.ipynb) |
+| 1.1 | Day 1 · Session 1 | Profile three producers | [`D1_1_profile_producers.ipynb`](labs/D1_1_profile_producers.ipynb) |
+| 1.2 | Day 1 · Session 2 | One contract for three producers | [`D1_2_shared_contract.ipynb`](labs/D1_2_shared_contract.ipynb) |
+| 1.3 | Day 1 · Session 3 | A keyed linkage identifier | [`D1_3_keyed_linkage.ipynb`](labs/D1_3_keyed_linkage.ipynb) |
+| 1.4 | Day 1 · Session 4 | A breaking-change policy, tested | [`D1_4_breaking_changes.ipynb`](labs/D1_4_breaking_changes.ipynb) |
+| 2.1 | Day 2 · Session 1 | From eager to lazy | [`D2_1_lazy_columnar.ipynb`](labs/D2_1_lazy_columnar.ipynb) |
+| 2.2 | Day 2 · Session 2 | Load one day twice | [`D2_2_idempotent_load.ipynb`](labs/D2_2_idempotent_load.ipynb) |
+| 2.3 | Day 2 · Session 3 | Rebuild last month | [`D2_3_table_snapshots.ipynb`](labs/D2_3_table_snapshots.ipynb) |
+| 2.4 | Day 2 · Session 4 | Gates and lineage per partition | [`D2_4_gates_lineage.ipynb`](labs/D2_4_gates_lineage.ipynb) |
+| 3.1 | Day 3 · Session 1 | Four requests, three options | [`D3_1_choose_method.ipynb`](labs/D3_1_choose_method.ipynb) |
+| 3.2 | Day 3 · Session 2 | Two generators for related tables | [`D3_2_relational_generators.ipynb`](labs/D3_2_relational_generators.ipynb) |
+| 3.3 | Day 3 · Session 3 | Train on synthetic, test on real | [`D3_3_synthetic_utility.ipynb`](labs/D3_3_synthetic_utility.ipynb) |
+| 3.4 | Day 3 · Session 4 | Attack each synthetic table | [`D3_4_attack_synthetic.ipynb`](labs/D3_4_attack_synthetic.ipynb) |
+| 4.1 | Day 4 · Session 1 | Sequences as quasi-identifiers | [`D4_1_longitudinal_risk.ipynb`](labs/D4_1_longitudinal_risk.ipynb) |
+| 4.2 | Day 4 · Session 2 | Twelve months, one budget | [`D4_2_budget_ledger.ipynb`](labs/D4_2_budget_ledger.ipynb) |
+| 4.3 | Day 4 · Session 3 | A pooled rate without pooled records | [`D4_3_secure_aggregation.ipynb`](labs/D4_3_secure_aggregation.ipynb) |
+| 4.4 | Day 4 · Session 4 | The decision for the university | [`D4_4_release_decision.ipynb`](labs/D4_4_release_decision.ipynb) |
 <!-- /academy:labs -->
 
 ## Capstone
@@ -94,7 +94,41 @@ Each line is a capability; the examples are interchangeable.
 <!-- academy:sources -->
 ## Sources
 
-- REPLACE: every source the course cites, with its address, in course.json under "sources"; this list is written from there
+### Contracts, pipelines and lineage
+
+- [Open Data Contract Standard (ODCS), latest version](https://bitol-io.github.io/open-data-contract-standard/latest/)
+- [ODCS: data quality section](https://bitol-io.github.io/open-data-contract-standard/latest/data-quality/)
+- [Polars user guide: the lazy API](https://docs.pola.rs/user-guide/lazy/)
+- [Polars user guide: streaming](https://docs.pola.rs/user-guide/concepts/streaming/)
+- [Delta Lake for Python and Rust (delta-rs)](https://delta-io.github.io/delta-rs/)
+- [DuckLake](https://ducklake.select/)
+- [Apache Iceberg](https://iceberg.apache.org/)
+- [OpenLineage: object model](https://openlineage.io/docs/spec/object-model)
+- [Marquez](https://marquezproject.ai/)
+- [Pandera](https://pandera.readthedocs.io/en/stable/)
+- [Soda Core](https://github.com/sodadata/soda-core)
+
+### Linkage, synthetic data and privacy
+
+- [Schnell, Bachteler, Reiher: Privacy-preserving record linkage using Bloom filters (2009)](https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/1472-6947-9-41)
+- [Stadler, Oprisanu, Troncoso: Synthetic Data, Anonymisation Groundhog Day (USENIX Security 2022)](https://www.usenix.org/conference/usenixsecurity22/presentation/stadler)
+- [Synthetic Data Vault: HMASynthesizer](https://docs.sdv.dev/sdv/multi-table-data/modeling/synthesizers/hmasynthesizer)
+- [synthcity](https://github.com/vanderschaarlab/synthcity)
+- [Dwork and Roth: The Algorithmic Foundations of Differential Privacy](https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf)
+- [NIST SP 800-226: Guidelines for Evaluating Differential Privacy Guarantees](https://csrc.nist.gov/pubs/sp/800/226/final)
+- [OpenDP documentation](https://docs.opendp.org/en/stable/)
+- [Bonawitz et al.: Practical Secure Aggregation for Privacy-Preserving Machine Learning](https://eprint.iacr.org/2017/281)
+- [ARX Data Anonymization Tool](https://arx.deidentifier.org/)
+- [sdcMicro](https://sdctools.github.io/sdcMicro/)
+
+### National references
+
+- [Personal Data Protection Law](https://sdaia.gov.sa/en/SDAIA/about/Documents/PersonalDataProtectionLaw.pdf)
+- [Implementing Regulation of the Personal Data Protection Law](https://sdaia.gov.sa/en/SDAIA/about/Documents/ImplementingRegulationPersonalDataProtectionLaw.pdf)
+- [Personal Data Destruction, Anonymization and Pseudonymisation Guideline](https://sdaia.gov.sa/Documents/PersonalDataDestructionAnonymizationAndEncryptionGuideline.pdf)
+- [General Rules for Secondary Use of Data](https://sdaia.gov.sa/Documents/GeneralRulesForSecondaryUseOfData_EN.pdf)
+- [Data Sharing Policy (National Data Management Office)](https://sdaia.gov.sa/en/SDAIA/about/Documents/DataSharingPolicyEN.pdf)
+- [Data Classification Policy (National Data Management Office)](https://sdaia.gov.sa/en/SDAIA/about/Documents/DataClassificationPolicy.pdf)
 <!-- /academy:sources -->
 
 ### National references
