@@ -726,6 +726,267 @@
       "level": "understand",
       "pool": "practice",
       "weight": 1
+    },
+    {
+      "id": "q-d4-sequences",
+      "type": "single",
+      "prompt": "An extract shows 4% of patients unique on sex, year of birth and region. With two known stays (month and diagnosis group) added, 97% of the patients who have two stays are unique. Which number describes the extract's risk?",
+      "options": [
+        "4%: the stays are not identifiers",
+        "97%, for an adversary who knows two stays: the sequence of stays is a quasi-identifier",
+        "The average of the two",
+        "Neither: pseudonymised data cannot be re-identified"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Risk depends on what an adversary may know; for longitudinal records, stays a relative or colleague knows single out almost everyone with them.",
+      "misconceptions": [
+        "Treats only demographic columns as quasi-identifiers",
+        "",
+        "Averages two answers to different questions",
+        "Forgets that pseudonymised data stays personal data"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day4",
+      "session": 1,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d4-truncation",
+      "type": "single",
+      "prompt": "Truncating each patient's history to two stays dropped 24% of stays and raised uniqueness at two known stays from 21% to 47%. Why did the risk rise?",
+      "options": [
+        "Truncation adds new information to each record",
+        "The adversary knows more after truncation",
+        "Other patients' later stays were the crowd that matched a person's known stays; removing them left fewer candidates",
+        "It did not: the measurement must be wrong"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Uniqueness counts candidates who share what is known; removing stays from everyone removes candidates, so a lever must be measured, not assumed.",
+      "misconceptions": [
+        "Assumes risk can only rise by adding data",
+        "Moves the change to the adversary instead of the data",
+        "",
+        "Assumes a protective-sounding lever cannot backfire"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day4",
+      "session": 1,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d4-bound",
+      "type": "single",
+      "prompt": "Monthly counts of readmitted stays are to be released with Laplace noise. One patient can have three readmitted stays in a month. What should be done first?",
+      "options": [
+        "Bound each patient's contribution, for example by counting readmitted patients, and calibrate the noise to that bound",
+        "Use the same noise as for a count where each person adds one",
+        "Remove patients with more than one stay",
+        "Add noise only to months with such patients"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The noise scale is the contribution bound divided by ε; a statistic in which each patient moves each count by at most 1 keeps the guarantee for patients.",
+      "misconceptions": [
+        "",
+        "Ignores that a person can move the count by more than one",
+        "Changes the population instead of bounding the contribution",
+        "Reveals which months contain them"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": "day4",
+      "session": 2,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d4-error",
+      "type": "single",
+      "prompt": "A yearly budget of ε = 1 is split over twelve monthly counts with Laplace noise. What is the expected absolute error of one month, and how do you halve it?",
+      "options": [
+        "1 patient; halve it by rounding",
+        "12 patients; halve it by adding a second noisy release and averaging, at no charge",
+        "12 patients; halve it by publishing only the months with large counts",
+        "12 patients; halve it with twice the budget per month, or with half as many releases"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "With bound 1 and ε = 1/12 per month the Laplace scale, and the expected absolute error, is 12; halving it needs twice the ε per release.",
+      "misconceptions": [
+        "Confuses ε with the noise scale",
+        "Thinks averaged re-releases are free",
+        "Turns the choice of months into a disclosure",
+        ""
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": "day4",
+      "session": 2,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d4-rerelease",
+      "type": "single",
+      "prompt": "A dashboard recomputes last month's count every night with fresh noise, but the ledger records only the first release. What is wrong?",
+      "options": [
+        "Nothing: each copy has the same ε",
+        "Each copy is a release; averaging them recovers the true count, so the real spend grows nightly",
+        "The counts will drift upwards",
+        "The ledger will refuse after twelve nights"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Sequential composition adds up every release; store and serve the first noisy value, or charge every recomputation.",
+      "misconceptions": [
+        "Treats the budget as a property of the query rather than of the releases",
+        "",
+        "Expects bias from unbiased noise",
+        "Forgets that the ledger was never charged"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": "day4",
+      "session": 2,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d4-subtraction",
+      "type": "single",
+      "prompt": "Three hospital groups pool a readmission count by secure aggregation and publish the exact total. Sidra and Ufuq compare notes. What can they learn?",
+      "options": [
+        "Nothing: secure aggregation hides every input",
+        "Only an approximate value for Rawdah",
+        "Rawdah's exact count: the total minus their own",
+        "Each patient's record at Rawdah"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The masks cancel exactly; anyone who knows all inputs but one can subtract. Outputs need their own protection: minimum sites and cells, or noise.",
+      "misconceptions": [
+        "Extends protection of inputs to the output",
+        "Confuses masks with noise",
+        "",
+        "Overstates what an aggregate reveals"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day4",
+      "session": 3,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d4-dropout",
+      "type": "single",
+      "prompt": "In a pairwise-mask protocol, one site drops out after agreeing its masks. The others reveal the masks they shared with it so the sum can be recovered. What must the aggregator then refuse?",
+      "options": [
+        "A late masked value from the dropped site",
+        "Any further values from the surviving sites",
+        "Publishing the recovered sum",
+        "Nothing: recovery has no consequence"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "With its masks revealed, the dropped site's late value could be unmasked alone; the protocol refuses it once recovery starts.",
+      "misconceptions": [
+        "",
+        "Blocks the sites whose values are still protected",
+        "Treats recovery as a breach of the total",
+        "Misses that the dropped site's masks are now known"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day4",
+      "session": 3,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d4-decision",
+      "type": "single",
+      "prompt": "A professor emails a request for all record-level columns, for a thesis, with institutional approval 'to follow'. The synthetic pair passes every attack. What does the release board decide?",
+      "options": [
+        "Approve the synthetic pair now: it is safe",
+        "Send a de-identified extract, which needs no approval",
+        "Reject the request permanently",
+        "Conditional approval: resubmission through the institution with written approval, on the form, with the minimum necessary data"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The secondary-use rules require an academic applicant to apply through the institution with written approval and to ask for the minimum necessary; the method applies once the request is complete.",
+      "misconceptions": [
+        "Lets measured safety replace requirements placed on the applicant",
+        "Thinks an extract escapes the rules for personal data",
+        "Ends a request whose gaps can be fixed",
+        ""
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": "day4",
+      "session": 4,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d4-residual",
+      "type": "single",
+      "prompt": "Which line belongs in a release decision record as a residual risk?",
+      "options": [
+        "'Data will be handled responsibly'",
+        "'Membership AUC 0.55 on patients and 0.51 on encounters, under the board's threshold of 0.60; the file remains derived from personal data'",
+        "'Synthetic data carries no risk'",
+        "'The risk is low'"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A residual risk states what was measured, against which threshold, and what remains; the board and the data protection officer can then check it.",
+      "misconceptions": [
+        "Writes an intention that cannot be checked",
+        "",
+        "Takes the label as the evidence",
+        "States a conclusion without the measurement"
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": "day4",
+      "session": 4,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
     }
   ]
 }
