@@ -1,13 +1,21 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["polars>=2.0", "pyyaml>=6.0", "psutil>=7.0"]
+# ///
 # %% [markdown]
-# # Lab 2.3 · Rebuild last month's analysis set from a table snapshot
+# # Lab 2.3 · Rebuild last month
 #
 # Day 2 · Session 3 (Tables with history) · 25 min.
 #
-# REPLACE: what participants build in this lab, in two or three lines.
+# Rebuild last month's analysis set from the table snapshot it was built on, prove it is identical, and measure what later corrections changed.
 #
 # **Tasks**
-# - [ ] REPLACE: the tasks, each with its minutes; they add up to 25
-# - [ ] ✱ Stretch · REPLACE: an extension for those who finish early
+# - [ ] 1 · Read the table's history (4')
+# - [ ] 2 · The analysis run record (4')
+# - [ ] 3 · Rebuild from the recorded version (7')
+# - [ ] 4 · Prove it identical, then diff with today (6')
+# - [ ] 5 · What vacuuming would break (4')
+# - [ ] ✱ Stretch · Restore the table to the recorded version and compare
 
 # %%
 import os, sys, subprocess
@@ -19,27 +27,11 @@ if IN_COLAB:
     if not Path("/content/ds-405").exists():
         subprocess.run(["git", "clone", "-q", REPO_URL, "/content/ds-405"], check=True)
     os.chdir("/content/ds-405/labs")
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements-colab.txt"], check=True)
 else:
-    while not Path("_tools").exists() and Path.cwd() != Path.cwd().parent:
+    while not Path("rimah.py").exists() and Path.cwd() != Path.cwd().parent:
         os.chdir("..")  # solutions/ notebooks run from labs/
 sys.path.insert(0, os.getcwd())
 
-# %% [markdown]
-# ## 1 · REPLACE: the first task
-#
-# REPLACE: what to do and why, in two sentences.
-
-# %%
-# ✏️ Exercise
-def first_task():
-    # BEGIN SOLUTION
-    return "the reference result"
-    # END SOLUTION
-
-# %%
-# Check, with a safety net: the cells below still run when the exercise is not done yet
-try:
-    result = first_task()
-except NotImplementedError:
-    result = "the reference result"
-print(result)
+import polars as pl
+import rimah as U

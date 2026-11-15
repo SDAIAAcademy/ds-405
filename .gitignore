@@ -34,3 +34,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 /*.log
+
+# Lab run outputs and the Day 2 lake (rimah_lake.py writes it on demand)
+labs/artifacts/
+labs/data/lake/

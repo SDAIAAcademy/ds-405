@@ -1,0 +1,5 @@
+# Colab already ships numpy, pandas, scikit-learn, matplotlib, pyarrow, pyyaml and psutil.
+polars>=2.0
+duckdb>=1.4
+deltalake>=1.4
+opendp>=0.16

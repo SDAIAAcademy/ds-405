@@ -1,13 +1,20 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["polars>=2.0", "pyyaml>=6.0", "psutil>=7.0"]
+# ///
 # %% [markdown]
-# # Lab 3.1 · Decide for four requests between synthetic data, a de-identified extract and a query service
+# # Lab 3.1 · Four requests, three options
 #
 # Day 3 · Session 1 (When synthetic data fits) · 25 min.
 #
-# REPLACE: what participants build in this lab, in two or three lines.
+# For four data requests, decide between synthetic data, a de-identified extract and a query service, with the evidence for each decision measured on the study tables.
 #
 # **Tasks**
-# - [ ] REPLACE: the tasks, each with its minutes; they add up to 25
-# - [ ] ✱ Stretch · REPLACE: an extension for those who finish early
+# - [ ] 1 · Read the four requests and what each needs (4')
+# - [ ] 2 · What a synthetic file gets wrong: rare cells (7')
+# - [ ] 3 · What an extract leaks: unique records (6')
+# - [ ] 4 · The decision table with residual risk (8')
+# - [ ] ✱ Stretch · Price each option in staff days and compute
 
 # %%
 import os, sys, subprocess
@@ -19,27 +26,11 @@ if IN_COLAB:
     if not Path("/content/ds-405").exists():
         subprocess.run(["git", "clone", "-q", REPO_URL, "/content/ds-405"], check=True)
     os.chdir("/content/ds-405/labs")
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements-colab.txt"], check=True)
 else:
-    while not Path("_tools").exists() and Path.cwd() != Path.cwd().parent:
+    while not Path("rimah.py").exists() and Path.cwd() != Path.cwd().parent:
         os.chdir("..")  # solutions/ notebooks run from labs/
 sys.path.insert(0, os.getcwd())
 
-# %% [markdown]
-# ## 1 · REPLACE: the first task
-#
-# REPLACE: what to do and why, in two sentences.
-
-# %%
-# ✏️ Exercise
-def first_task():
-    # BEGIN SOLUTION
-    return "the reference result"
-    # END SOLUTION
-
-# %%
-# Check, with a safety net: the cells below still run when the exercise is not done yet
-try:
-    result = first_task()
-except NotImplementedError:
-    result = "the reference result"
-print(result)
+import polars as pl
+import rimah as U

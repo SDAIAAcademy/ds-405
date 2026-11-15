@@ -3,24 +3,53 @@
   "version": 1,
   "questions": [
     {
-      "id": "q-example-1",
+      "id": "q-d1-units-ratio",
       "type": "single",
-      "prompt": "REPLACE: a practice question on LO1, as a short scenario",
+      "prompt": "Sidra's creatinine median is 89.9 and Ufuq's is 1.00. Both columns are numeric and complete. What is the most likely explanation, and what follows?",
       "options": [
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: the right answer",
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: a wrong option that a common misconception makes tempting"
+        "Ufuq's patients have healthier kidneys; pool the values as they are",
+        "Ufuq reports mg/dL; confirm with Ufuq and write the factor 88.42 into the contract",
+        "One of the columns is corrupt; drop creatinine from the study",
+        "The medians differ by chance; compare means instead"
       ],
       "correct": [
         1
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "A ratio near a known unit factor points to a unit difference; the producer confirms it and the contract states the conversion for every consumer.",
       "misconceptions": [
-        "REPLACE: the misconception behind this option",
+        "Reads a unit difference as a clinical difference",
         "",
-        "REPLACE: the misconception behind this option",
-        "REPLACE: the misconception behind this option"
+        "Discards a usable field instead of asking the producer",
+        "Treats an 88-fold difference as sampling noise"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": "day1",
+      "session": 1,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d1-dx-join",
+      "type": "single",
+      "prompt": "Rawdah's diagnosis codes look like i50.9 and Ufuq's like I509. A colleague joins all three extracts to a diagnosis lookup on the raw code. What happens?",
+      "options": [
+        "The join fails with an error, so the problem is found at once",
+        "Only codes in the lookup's exact format match, so most Ufuq and Rawdah rows drop out silently",
+        "The database ignores case and dots, so all rows match",
+        "Every row matches, some to the wrong diagnosis"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "An inner join on codes that were not normalised drops what does not match exactly, without any error; the contract's format rule prevents it.",
+      "misconceptions": [
+        "Expects a silent mismatch to raise an error",
+        "",
+        "Assumes joins normalise text",
+        "Confuses missed matches with wrong matches"
       ],
       "lo": [
         "LO1"
@@ -32,134 +61,175 @@
       "weight": 1
     },
     {
-      "id": "q-example-2",
-      "type": "tf",
-      "prompt": "REPLACE: a statement on LO2 that is true",
+      "id": "q-d1-freshness",
+      "type": "single",
+      "prompt": "Ufuq's latest delivery passes every column rule, but its newest admission is nine days before the delivery date. The contract allows two. What should the gate do?",
       "options": [
-        "True",
-        "False"
+        "Block the delivery and ask Ufuq to send a complete extract again",
+        "Accept it: every row is valid",
+        "Accept it and fill the missing days with the average of earlier days",
+        "Accept it and note the gap in the study's limitations"
       ],
       "correct": [
         0
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "Freshness is a contract clause: a delivery that stops early biases pooled rates, so the gate blocks it and the producer sends it again.",
       "misconceptions": [
         "",
-        "REPLACE: the misconception behind this option"
+        "Treats completeness of a period as a property of single rows",
+        "Invents data to hide a gap",
+        "Lets a known bias into the pooled rate when a new delivery is possible"
       ],
       "lo": [
-        "LO2"
+        "LO1"
       ],
       "day": "day1",
-      "session": 1,
-      "level": "understand",
-      "pool": "practice",
-      "weight": 1
-    },
-    {
-      "id": "q-example-3",
-      "type": "single",
-      "prompt": "REPLACE: a practice question on LO3, as a short scenario",
-      "options": [
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: the right answer",
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: a wrong option that a common misconception makes tempting"
-      ],
-      "correct": [
-        1
-      ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
-      "misconceptions": [
-        "REPLACE: the misconception behind this option",
-        "",
-        "REPLACE: the misconception behind this option",
-        "REPLACE: the misconception behind this option"
-      ],
-      "lo": [
-        "LO3"
-      ],
-      "day": "day1",
-      "session": 1,
+      "session": 2,
       "level": "apply",
       "pool": "practice",
       "weight": 1
     },
     {
-      "id": "q-example-4",
-      "type": "tf",
-      "prompt": "REPLACE: a statement on LO4 that is true",
+      "id": "q-d1-what-in-contract",
+      "type": "single",
+      "prompt": "Which clause belongs in the shared contract rather than in one consumer's pipeline code?",
       "options": [
-        "True",
-        "False"
+        "The colour scheme of the study's dashboard",
+        "The study's model settings",
+        "Ufuq's mapping of discharge codes 1 to 4 onto HOME, TRANSFER, DIED and LAMA",
+        "The name of the notebook that reads the feed"
       ],
       "correct": [
-        0
+        2
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "Code maps define what the producer's values mean; written in the contract, every consumer applies the same meaning and a change to it is versioned.",
       "misconceptions": [
+        "Mixes a consumer's presentation choice with the feed's meaning",
+        "Puts an analysis choice into the producers' agreement",
         "",
-        "REPLACE: the misconception behind this option"
+        "Confuses a consumer's file with the contract"
       ],
       "lo": [
-        "LO4"
+        "LO1"
       ],
       "day": "day1",
-      "session": 1,
+      "session": 2,
       "level": "understand",
       "pool": "practice",
       "weight": 1
     },
     {
-      "id": "q-example-5",
+      "id": "q-d1-key-custody",
       "type": "single",
-      "prompt": "REPLACE: a practice question on LO5, as a short scenario",
+      "prompt": "Producers will send HMAC-SHA-256 of the normalised national identifier. Who should hold the key?",
       "options": [
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: the right answer",
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: a wrong option that a common misconception makes tempting"
+        "The consortium's analysts, so they can check matches",
+        "Nobody: generate it once and delete it",
+        "Each producer its own key",
+        "A linkage unit outside the analysis team, which gives the producers one key for this project"
       ],
       "correct": [
-        1
+        3
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "The producers need one shared key to produce matching pseudonyms; keeping it away from the analysts keeps the pseudonyms irreversible for them, and a key per project prevents joins across projects.",
       "misconceptions": [
-        "REPLACE: the misconception behind this option",
-        "",
-        "REPLACE: the misconception behind this option",
-        "REPLACE: the misconception behind this option"
+        "Gives the people who see the data the means to re-identify it",
+        "Producers need the same key to compute matching pseudonyms",
+        "Different keys give different pseudonyms, so nothing links",
+        ""
       ],
       "lo": [
-        "LO5"
+        "LO1"
       ],
       "day": "day1",
-      "session": 1,
+      "session": 3,
       "level": "apply",
       "pool": "practice",
       "weight": 1
     },
     {
-      "id": "q-example-6",
-      "type": "tf",
-      "prompt": "REPLACE: a statement on LO6 that is true",
+      "id": "q-d1-linkage-report",
+      "type": "single",
+      "prompt": "Adding a second linkage key on name, birth date and sex raised recall from 0.993 to 1.000 and lowered precision from 1.000 to 0.988. What should you report?",
       "options": [
-        "True",
-        "False"
+        "Only the recall: the study needs every readmission",
+        "Both numbers with counts: 14 pairs recovered, 24 strangers merged, and a proposed rule to filter them",
+        "Only precision: wrong links are unacceptable",
+        "Neither: the truth file is synthetic, so the numbers mean nothing"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Linkage makes two errors that bias the study in different directions; the decision needs both, as counts as well as rates.",
+      "misconceptions": [
+        "Hides the merged histories the second key created",
+        "",
+        "Hides the readmissions the first key misses",
+        "Rejects measurement because the data is synthetic, when the planted truth is exactly what makes it measurable"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": "day1",
+      "session": 3,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d1-hidden-unit",
+      "type": "single",
+      "prompt": "Ufuq replaces column Creatinine_mgdl by Creatinine, whose median is 89.3 where the old one was 1.00. How does the policy classify it?",
+      "options": [
+        "Additive: a new column appeared",
+        "No change: the same measurement under a clearer name",
+        "Breaking: a renamed column and a unit change; a new major version",
+        "Breaking only if the data protection officer objects"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The values show the same measurement in a new unit: a rename and a unit change, both breaking, so the contract moves to a new major version.",
+      "misconceptions": [
+        "Reads the schema diff and not the values",
+        "Misses the unit change hidden by the rename",
+        "",
+        "Confuses the approvers with the classification"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": "day1",
+      "session": 4,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d1-new-code",
+      "type": "single",
+      "prompt": "Why is a new value in a closed code set (Ufuq's discharge code 5) treated as breaking?",
+      "options": [
+        "The study's mapping does not know it, so those rows become null or drop out",
+        "Any change to a producer's system is breaking",
+        "New codes always mean worse data quality",
+        "It is not: new values are always additive"
       ],
       "correct": [
         0
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "A consumer with a closed list cannot place the new code, so its rows silently leave the analysis; the producer must announce it.",
       "misconceptions": [
         "",
-        "REPLACE: the misconception behind this option"
+        "Over-classifies changes that consumers do not notice",
+        "Judges the value instead of its effect on consumers",
+        "Ignores that consumers with closed lists lose the rows"
       ],
       "lo": [
-        "LO6"
+        "LO1"
       ],
       "day": "day1",
-      "session": 1,
+      "session": 4,
       "level": "understand",
       "pool": "practice",
       "weight": 1

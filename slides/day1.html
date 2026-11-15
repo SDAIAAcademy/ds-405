@@ -1,158 +1,485 @@
 <section class="slide title" id="title" data-auto="title">
-  <aside class="notes">REPLACE: welcome; introduce yourself; one question to the room that calibrates the pace; the rhythm of the day</aside>
+  <aside class="notes"><p>Welcome the room and introduce the case in one sentence: three hospital groups, one readmission study, and a university that wants a copy. Calibrating question: who has ever joined two tables from different systems and found that a code meant different things? Ask for one story. The rhythm: four sessions, each about 25 minutes of ideas and a 25-minute lab. Today's first contract (Lab 1.2) is AI off, as are the supervised checks; in the other labs an AI tutor may explain errors but writes no generator or attack code.</p></aside>
 </section>
 
 <section class="slide" id="agenda" data-auto="agenda"></section>
 
-<!-- Session 1 -->
+<!-- ======================= SESSION 1 ======================= -->
+<section class="slide section" id="s1" data-auto="section" data-session="1" data-label="Producers disagree"></section>
 
-<section class="slide section" id="s1" data-auto="section" data-session="1"></section>
-
-<section class="slide" id="s1-idea" data-lo="LO1">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="rimah-case" data-label="The case" data-lo="LO1">
+  <div class="kicker">The case this week</div>
+  <h2>Rimah pools three hospital groups for one readmission study</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>Sidra Hospitals</h4><p class="small mb0">3,850 encounters this quarter. Ihab Al-Qadi runs the extract.</p></div>
+    <div class="card c-cyan"><h4>Ufuq Medical Group</h4><p class="small mb0">3,216 rows. Kinan Al-Rakhees runs the extract.</p></div>
+    <div class="card c-coral"><h4>Rawdah Hospitals</h4><p class="small mb0">3,252 rows. Ashjan Al-Essa runs the extract.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <ul class="bullets small mt">
+    <li><b>The consumer:</b> Atiyah Al-Maghlouth's 30-day readmission study, and next month a university partner.</li>
+    <li><b>Your role:</b> Yousra Al-Dahmash, the consortium's data preparation and privacy engineer.</li>
+  </ul>
+  <aside class="notes"><p>All three organisations and every record are synthetic, with planted identifiers and planted problems. The counts are the Q4 2025 extracts in labs/data/producers. Personas recur all week: Dr. Fadwa Al-Qassabi chairs the release board, Ghanem Al-Mutawakkil is the data protection officer, Prof. Adnan Al-Shuwaiman is the university partner.</p></aside>
 </section>
 
-<section class="slide" id="s1-steps" data-lo="LO1">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="duties" data-label="Duties" data-lo="LO1">
+  <div class="kicker">Who owes what</div>
+  <h2>Producers promise; the consumer states what it needs</h2>
+  <div class="cols cols-2">
+    <div class="card c-teal flat"><h4>The producer owes</h4><p class="small mb0">The agreed columns, codes and units; deliveries on time; notice before a change; an answer when a delivery fails a rule.</p></div>
+    <div class="card c-purple flat"><h4>The consumer owes</h4><p class="small mb0">A written statement of what the analysis needs; the rules it will apply; no silent "fixes" of a producer's data downstream.</p></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <div class="callout warn mt"><b>What goes wrong.</b> Each consumer quietly repairs each producer in its own code. Three studies, three different repairs, and nobody tells the producer.</div>
+  <aside class="notes"><p>Single-table contracts are assumed from DS-311 (or equivalent). What is new here is several producers for one entity: the contract becomes the place where their differences are resolved once, in the open, instead of in every consumer's notebook.</p></aside>
+</section>
+
+<section class="slide" id="four-kinds" data-label="Four kinds" data-lo="LO1">
+  <div class="kicker">Where producers disagree</div>
+  <h2>Four kinds of disagreement, each fixed in a different place</h2>
+  <table class="t small">
+    <tr><th>Kind</th><th>At Rimah</th><th>Fixed by</th></tr>
+    <tr><td><b>Schema</b>: names, formats</td><td><code>AdmissionDate</code> as dd/mm/yyyy at Ufuq</td><td>a column map and a parse rule</td></tr>
+    <tr><td><b>Codes</b>: the same idea, other values</td><td>sex as M/F, Male/Female, 1/2</td><td>a code map the producer confirms</td></tr>
+    <tr><td><b>Units</b>: the same number, other scale</td><td>weight in pounds at Rawdah</td><td>a unit factor in the contract</td></tr>
+    <tr><td><b>Identifiers</b>: the same person, other spelling</td><td><code>SA-</code> prefix, spaces, Arabic-Indic digits</td><td>normalisation before linkage (session 3)</td></tr>
+  </table>
+  <aside class="notes"><p>Ask the room which kind is the most dangerous. The answer we want: units and codes, because they pass type checks. Schema problems fail loudly; meaning problems fail silently.</p></aside>
+</section>
+
+<section class="slide" id="profile-first" data-label="Profile first" data-lo="LO1">
+  <div class="kicker">Lab 1.1 · step 1</div>
+  <h2>Read every column as text before you trust a type</h2>
+  <div class="cols cols-2">
+    <pre class="code s" data-file="Lab 1.1"><code class="language-python">raw = {p: U.load(f) for p, f in FILES.items()}
+# U.load reads CSV with infer_schema=False:
+# every column is a string until you decide</code></pre>
+    <ul class="bullets small">
+      <li>Rawdah's <code>enc_id</code> is <code>0000001</code>: read as a number, it becomes 1.</li>
+      <li>Ufuq's <code>01/10/2025</code> is 1 October; a guessing reader may say 10 January.</li>
+      <li>Profiling on text shows what is there, not what a reader assumed.</li>
+    </ul>
+  </div>
+  <aside class="notes"><p>Demonstration: load rawdah_encounters.csv once with Polars' default inference and once as text; show the enc_id column both ways. Then show Ufuq's dates. Two minutes, then move on.</p></aside>
+</section>
+
+<section class="slide" id="units-in-distribution" data-label="Units" data-lo="LO1">
+  <div class="kicker">Lab 1.1 · step 4</div>
+  <h2>A unit difference hides in the distribution, not in the type</h2>
+  <table class="t small">
+    <tr><th>Median at</th><th class="num">Sidra</th><th class="num">Ufuq</th><th class="num">Rawdah</th></tr>
+    <tr><td>Weight column</td><td class="num">78.3</td><td class="num">78.1</td><td class="num">171.7</td></tr>
+    <tr><td>Creatinine column</td><td class="num">89.9</td><td class="num">1.00</td><td class="num">89.7</td></tr>
+  </table>
+  <div class="cols cols-2 mt-s">
+    <div class="callout warn small"><b>Rawdah: pounds.</b> 171.7 / 78.3 is 2.2, the kg-to-lb factor.</div>
+    <div class="callout warn small"><b>Ufuq: mg/dL.</b> 89.9 / 1.00 is about 88.4, the mg/dL-to-µmol/L factor.</div>
+  </div>
+  <aside class="notes"><p>Numbers from the course's run of Lab 1.1 on the committed extracts. Both columns are numbers, both would pass a wide range check, both would pool into nonsense. The ratio between producers is the clue; the producer confirms. Ufuq's column name even says mg/dL; Rawdah's says lb. Names help when they are there: on Day 1 session 4 a name disappears.</p></aside>
+</section>
+
+<section class="slide" id="codes-differ" data-label="Codes" data-lo="LO1">
+  <div class="kicker">Lab 1.1 · step 3</div>
+  <h2>Compare the shape of codes, not only their values</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>Sidra</h4><p class="small mb0"><code>I50.9</code>: shape <code>A99.9</code></p></div>
+    <div class="card c-cyan"><h4>Ufuq</h4><p class="small mb0"><code>I509</code>: the dot is gone</p></div>
+    <div class="card c-coral"><h4>Rawdah</h4><p class="small mb0"><code>i50.9</code>: lower case</p></div>
+  </div>
+  <p class="small mt">A join of diagnosis codes across the three returns Sidra's rows only. Nothing errors; the study shrinks by two thirds.</p>
+  <aside class="notes"><p>Shape profiling: replace letters with A and digits with 9 and count the distinct shapes per producer. It finds format drift in identifiers, postcodes and codes in seconds. Dispositions are worse: Ufuq's 1 to 4 and Rawdah's 01 to 04 carry no meaning without the producer's code list.</p></aside>
+</section>
+
+<section class="slide" id="register" data-label="The register" data-lo="LO1">
+  <div class="kicker">Lab 1.1 · step 5</div>
+  <h2>The disagreement register is the contract's to-do list</h2>
+  <div class="cols cols-12">
+    <div class="stat center"><div class="big">18</div><div class="lbl">disagreements in the reference register</div></div>
+    <table class="t small">
+      <tr><th>Kind</th><th class="num">Rows</th></tr>
+      <tr><td>code</td><td class="num">6</td></tr>
+      <tr><td>format</td><td class="num">6</td></tr>
+      <tr><td>schema, identifier, unit</td><td class="num">2 each</td></tr>
+    </table>
+  </div>
+  <p class="small mt">Each row: field, producer, kind, what you saw, the fix. Rows marked "confirm" go to the producer before the contract is signed.</p>
+  <aside class="notes"><p>From the solution of Lab 1.1. Participants' registers will differ in count; what matters is that every kind is present and both unit problems are found.</p></aside>
+</section>
+
+<section class="slide" id="check-units" data-label="Checkpoint" data-lo="LO1">
+  <div class="kicker">Checkpoint</div>
+  <h2>A check that passes</h2>
+  <div class="quiz" data-type="single" data-lo="LO1">
+    <p class="lead">All three producers' weight columns pass "a number between 1 and 500". What do you do before pooling them?</p>
+    <div class="opts">
+      <div class="opt" data-why="Trusts a range wide enough to hold pounds and kilograms alike">Pool them: the rule passed for every producer</div>
+      <div class="opt" data-why="Fixes a symptom in one consumer's code and tells nobody">Divide Rawdah's values by 2.2 in the study notebook</div>
+      <div class="opt" data-ok>Compare the distributions by producer and confirm the unit with each producer</div>
+      <div class="opt" data-why="Throws away good data because one producer differs">Drop weight from the study</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> A unit difference passes type and range checks. The distribution shows it, the producer confirms it, and the factor goes into the contract for every consumer.</div>
+  </div>
+  <aside class="notes"><p>Answer: C. If the room picks B, ask: what happens to the next study that reads Rawdah's weights?</p></aside>
 </section>
 
 <section class="slide lab" id="lab-1-1" data-auto="lab" data-lab="1.1">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: reading with type inference and losing Rawdah's leading zeros; comparing means instead of medians (outliers move the mean); forgetting that Rawdah's sex codes 1 and 2 need the producer's confirmation. The safety-net cells let anyone who is stuck continue to the next step.</p></aside>
 </section>
 
-<!-- Session 2 -->
-
+<!-- ======================= SESSION 2 ======================= -->
 <section class="slide section" id="s2" data-auto="section" data-session="2"></section>
 
-<section class="slide" id="s2-idea" data-lo="LO1">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
+<section class="slide" id="contract-promises" data-label="Promises" data-lo="LO1">
+  <div class="kicker">A contract</div>
+  <h2>A contract promises meaning, not only columns</h2>
   <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
+    <ul class="bullets small">
+      <li><b>Schema:</b> names, types, required fields, keys.</li>
+      <li><b>Meaning:</b> code sets, units, plausible ranges.</li>
+      <li><b>Quality:</b> rules every delivery must pass.</li>
+      <li><b>Service:</b> freshness and frequency.</li>
+      <li><b>People:</b> the owner, the consumers, who approves a change.</li>
     </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+    <div class="card c-coral flat"><h4>The test</h4><p class="small mb0">If Rawdah sent pounds tomorrow, would the contract say it was wrong? A list of typed columns would not.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <aside class="notes"><p>Recap from the single-table course in one breath, then the new question: with three producers, where do their differences live? Answer: in the contract, per producer, in clauses everyone can read.</p></aside>
 </section>
 
-<section class="slide" id="s2-steps" data-lo="LO1">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="odcs-anatomy" data-label="ODCS" data-lo="LO1">
+  <div class="kicker">An open standard</div>
+  <h2>ODCS v3.2.0: the contract is a YAML document anyone can read</h2>
+  <pre class="code s" data-file="data/contracts/encounter.skeleton.odcs.yaml"><code class="language-yaml">apiVersion: v3.2.0
+kind: DataContract
+id: rimah-encounter
+version: 0.1.0
+schema:
+  - name: encounter
+    properties:
+      - name: weight_kg
+        logicalType: number
+        description: Body weight in kilograms.
+slaProperties:
+  - property: latency
+    value: 2
+    unit: d</code></pre>
+  <aside class="notes"><p>The Open Data Contract Standard is published by the Bitol project; v3.2.0 is the version on its site this month. Show the sections: fundamentals, schema, quality, SLA, team, roles, custom properties. Pandera and Soda Core are other ways to express and run rules; the contract can carry a Soda block for another engine (the stretch). Sources: the ODCS site and its full example.</p></aside>
+</section>
+
+<section class="slide" id="producer-clauses" data-label="Producer clauses" data-lo="LO1">
+  <div class="kicker">Lab 1.2 · step 2</div>
+  <h2>Each producer's differences become clauses in the one contract</h2>
+  <pre class="code s" data-file="customProperties: producers"><code class="language-yaml">UFQ:
+  columns: {admit_date: AdmissionDate, creatinine_umol_l: Creatinine_mgdl}
+  date_formats: {admit_date: "%d/%m/%Y"}
+  codes: {sex: {Male: M, Female: F}, disposition: {"1": HOME, "3": DIED}}
+  transforms: {primary_dx: icd10_dot}
+  units: {creatinine_umol_l: 88.42}
+RWD:
+  units: {weight_kg: 0.453592}</code></pre>
+  <div class="callout note small mt"><b>Custom properties.</b> ODCS has no section for per-producer mappings; <code>customProperties</code> is where the standard lets you add one. Say so in the contract.</div>
+  <aside class="notes"><p>The course helper U.conform reads only these clauses. That is the point: the mapping is data in the contract, not code in a pipeline. A new consumer reads the same clauses. The disposition codes were confirmed by the producers in the case; in real life this is the email you send after Lab 1.1.</p></aside>
+</section>
+
+<section class="slide" id="library-metrics" data-label="Quality rules" data-lo="LO1">
+  <div class="kicker">Lab 1.2 · step 3</div>
+  <h2>Library metrics run on any engine; SQL covers the rest</h2>
+  <table class="t small">
+    <tr><th>Metric</th><th>At Rimah</th></tr>
+    <tr><td><code>invalidValues</code> with <code>validValues</code></td><td>sex, ward, disposition in their code sets</td></tr>
+    <tr><td><code>invalidValues</code> with <code>pattern</code></td><td>ICD-10 with the dot</td></tr>
+    <tr><td><code>duplicateValues</code></td><td>one row per <code>encounter_id</code></td></tr>
+    <tr><td><code>type: sql</code></td><td>no discharge before admission</td></tr>
+    <tr><td>ranges (course extension)</td><td>weight 1 to 350 kg, creatinine 20 to 1,500 µmol/L</td></tr>
+  </table>
+  <aside class="notes"><p>ODCS's library lists nullValues, missingValues, invalidValues, duplicateValues and rowCount, each with mustBe, mustBeLessThan or mustBeBetween. It has no minimum and maximum arguments: the course helper accepts them and the contract says they are an extension. In a real deployment write the range as a SQL rule or a custom engine block.</p></aside>
+</section>
+
+<section class="slide" id="contract-results" data-label="Results" data-lo="LO1">
+  <div class="kicker">Lab 1.2 · step 4</div>
+  <h2>One contract, three runs: 19 clauses each</h2>
+  <table class="t small">
+    <tr><th>Producer</th><th class="num">Passed</th><th>Failed clause</th><th class="num">Value</th></tr>
+    <tr><td>Sidra</td><td class="num">19 of 19</td><td>none</td><td class="num"></td></tr>
+    <tr class="hl"><td>Ufuq</td><td class="num">17 of 19</td><td>duplicate encounter ids; latency</td><td class="num">37 rows; 9 days</td></tr>
+    <tr class="hl"><td>Rawdah</td><td class="num">18 of 19</td><td>discharge before admission</td><td class="num">16 rows</td></tr>
+  </table>
+  <p class="small mt">Each failure names the producer, the clause and the rows: the producer can act on it.</p>
+  <aside class="notes"><p>From the solution run of Lab 1.2 on the committed extracts. The latency failure matters most to the study: Ufuq's newest admission is 22 December, delivered on 31 December, so its last nine days are missing. A December readmission rate pooled from this delivery would be quietly low for Ufuq.</p></aside>
+</section>
+
+<section class="slide" id="freshness" data-label="Freshness" data-lo="LO1">
+  <div class="kicker">Service levels</div>
+  <h2>Freshness is a clause, because missing days look like fewer patients</h2>
+  <div class="cols cols-2">
+    <div class="stat center"><div class="big">9 days</div><div class="lbl">between Ufuq's newest admission and its delivery; the contract allows 2</div></div>
+    <ul class="bullets small">
+      <li>A late file is easy to see; a file that stops early is not.</li>
+      <li><code>slaProperties</code> latency: the newest record against the delivery date.</li>
+      <li>The rule blocks the delivery; the producer re-sends a complete one.</li>
+    </ul>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Ask: what would the readmission rate for late December look like with Ufuq's rows missing? Discharges in the last week would have no readmissions recorded from Ufuq, and its admissions would be missing too. The bias goes in a direction nobody predicts.</p></aside>
+</section>
+
+<section class="slide" id="ai-off-contract" data-label="AI off" data-lo="LO1">
+  <div class="kicker">How this lab runs</div>
+  <h2>The first contract is written without an assistant</h2>
+  <div class="cols cols-2">
+    <div class="card c-navy tint"><h4>AI off</h4><p class="small mb0">Lab 1.2 and the supervised checks: the decisions in a contract (what counts as valid, what blocks) are the skill being tested.</p></div>
+    <div class="card c-teal tint"><h4>AI tutor</h4><p class="small mb0">The other labs: an assistant may explain an error message. It does not write generator or attack code.</p></div>
+  </div>
+  <aside class="notes"><p>Say it once, clearly, and ask participants to close assistants for the next 25 minutes. The capstone is AI-full and defended live.</p></aside>
+</section>
+
+<section class="slide" id="check-contract" data-label="Checkpoint" data-lo="LO1">
+  <div class="kicker">Checkpoint</div>
+  <h2>Where the factor lives</h2>
+  <div class="quiz" data-type="single" data-lo="LO1">
+    <p class="lead">Ufuq confirms its creatinine is in mg/dL. Where should the factor 88.42 be written?</p>
+    <div class="opts">
+      <div class="opt" data-ok>In the contract, as a unit clause for Ufuq's creatinine</div>
+      <div class="opt" data-why="Hides the rule in one pipeline where other consumers never see it">In the preparation pipeline's cleaning step</div>
+      <div class="opt" data-why="Pushes a consumer's need onto the producer's own system">In Ufuq's hospital system, by changing its unit</div>
+      <div class="opt" data-why="Turns a fixed rule into a habit that each analyst may forget">In the study's analysis notebook, with a comment</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> In the contract the producer and every consumer read the same rule, and changing it becomes a versioned change with notice.</div>
+  </div>
+  <aside class="notes"><p>Answer: A. C is tempting but wrong: Ufuq's clinicians may rely on mg/dL; the contract adapts the feed, not the hospital.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-1-2" data-auto="lab" data-lab="1.2">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI off: assistants closed. Usual problems: codes written as numbers in YAML (1 instead of "1": the helper compares text); forgetting that Sidra also needs the icd10_dot transform to be safe; a rule with no mustBe operator. Those who finish read the stretch: the same rule as a Soda block.</p></aside>
 </section>
 
-<!-- Session 3 -->
-
+<!-- ======================= SESSION 3 ======================= -->
 <section class="slide section" id="s3" data-auto="section" data-session="3"></section>
 
-<section class="slide" id="s3-idea" data-lo="LO1">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
+<section class="slide" id="why-link" data-label="Why link" data-lo="LO1">
+  <div class="kicker">The study's need</div>
+  <h2>A readmission is often at another hospital group</h2>
   <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
+    <ul class="bullets small">
+      <li>1,953 pairs of local patients in this quarter's extracts are the same person at two groups.</li>
+      <li>Without linkage those readmissions are invisible to the study.</li>
+      <li>The national identifier links them; it may not travel to the consortium.</li>
     </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+    <div class="card c-coral flat"><h4>The constraint</h4><p class="small mb0">Health data is sensitive data under the Personal Data Protection Law. The study needs the link, not the identity.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <aside class="notes"><p>1,953 is the number of true cross-producer pairs in data/truth/person_map.csv, which only the course has. Sources: Personal Data Protection Law (health data is listed among sensitive data in its definitions).</p></aside>
 </section>
 
-<section class="slide" id="s3-steps" data-lo="LO1">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="pseudonym-vs-anonymous" data-label="Pseudonymous" data-lo="LO1">
+  <div class="kicker">Words that matter</div>
+  <h2>A pseudonym is still personal data; anonymous data is not</h2>
+  <table class="t small">
+    <tr><th></th><th>Pseudonymised</th><th>Anonymised</th></tr>
+    <tr><td>Who can re-identify</td><td>whoever holds the extra information</td><td>nobody, irreversibly</td></tr>
+    <tr><td>Still personal data</td><td>yes</td><td>no</td></tr>
+    <tr><td>At Rimah</td><td>the linkage key</td><td>a release that passes Day 3 and 4 tests</td></tr>
+  </table>
+  <div class="callout note small mt"><b>The extra information is kept apart.</b> SDAIA's guideline asks that what is needed to re-identify is held separately, under controls.</div>
+  <aside class="notes"><p>Paraphrased from SDAIA's Personal Data Destruction, Anonymization and Pseudonymisation Guideline: pseudonymised data remains personal data because it can be linked back with additional information, which must be stored separately and protected; anonymised data must be irreversible and needs an assessment of re-identification. That is why this course never calls a hashed identifier "anonymous". Sources: the guideline, sdaia.gov.sa.</p></aside>
+</section>
+
+<section class="slide" id="plain-hash-reversed" data-label="Plain hash" data-lo="LO1">
+  <div class="kicker">Lab 1.3 · step 1</div>
+  <h2>A plain hash of an identifier is reversed by enumeration</h2>
+  <div class="cols cols-2">
+    <div class="stat center"><div class="big">2.2 s</div><div class="lbl">to reverse one SHA-256 of a national identifier when the first four digits are known</div></div>
+    <ul class="bullets small">
+      <li>About 175,000 hashes a second on one laptop core, in plain Python.</li>
+      <li>All 2 billion candidates: about 3 hours on one core; far less on a graphics card.</li>
+      <li>The identifier's space is small and structured: hashing hides nothing.</li>
+    </ul>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Numbers from the course's full-mode run of Lab 1.3 on a laptop; participants will see their own. The DS-309 stretch asked whether a hashed identifier is still personal data; today the room sees the answer in seconds.</p></aside>
+</section>
+
+<section class="slide" id="keyed-hash" data-label="Keyed hash" data-lo="LO1">
+  <div class="kicker">Lab 1.3 · step 3</div>
+  <h2>A keyed hash with a key the consortium never holds</h2>
+  <div class="flow">
+    <div class="step c-navy"><b>Linkage unit</b>creates a key for this project</div>
+    <div class="arrow">→</div>
+    <div class="step c-teal"><b>Each producer</b>normalises, then HMAC-SHA-256</div>
+    <div class="arrow">→</div>
+    <div class="step c-cyan"><b>Consortium</b>receives pseudonyms only</div>
+  </div>
+  <ul class="bullets small mt">
+    <li>Without the key nobody can recompute or enumerate the pseudonyms.</li>
+    <li>A new project gets a new key: its pseudonyms cannot be joined with this one's.</li>
+  </ul>
+  <aside class="notes"><p>The lab uses a demonstration key written in the notebook; say clearly that a real key lives with a linkage unit and travels to producers over a secure channel. Bloom-filter encodings (Schnell and colleagues, 2009) allow approximate matching of names under a key; they have known attacks and are out of scope here.</p></aside>
+</section>
+
+<section class="slide" id="normalise-first" data-label="Normalise" data-lo="LO1">
+  <div class="kicker">Lab 1.3 · step 2</div>
+  <h2>Normalise first, or one person gets three pseudonyms</h2>
+  <table class="t small">
+    <tr><th>As typed</th><th>Normalised</th></tr>
+    <tr><td><code>1012 345 678</code> (Ufuq)</td><td><code>1012345678</code></td></tr>
+    <tr><td><code>SA-1012345678</code> (Rawdah)</td><td><code>1012345678</code></td></tr>
+    <tr><td>Arabic-Indic digits (Ufuq)</td><td><code>1012345678</code></td></tr>
+    <tr><td><code>101234567</code></td><td>rejected, not padded</td></tr>
+  </table>
+  <p class="small mt">The rule is part of the contract: every producer normalises the same way before hashing.</p>
+  <aside class="notes"><p>Ask why a nine-digit value is rejected rather than padded with a zero: padding invents an identifier that may belong to someone else.</p></aside>
+</section>
+
+<section class="slide" id="match-rates" data-label="Match rates" data-lo="LO1">
+  <div class="kicker">Lab 1.3 · steps 4 and 5</div>
+  <h2>Measure linkage against a truth: recall and precision</h2>
+  <table class="t small">
+    <tr><th>Method</th><th class="num">Linked pairs</th><th class="num">Precision</th><th class="num">Recall</th></tr>
+    <tr><td>Keyed hash, raw identifier</td><td class="num">225</td><td class="num">1.000</td><td class="num">0.115</td></tr>
+    <tr><td>Keyed hash, normalised</td><td class="num">1,939</td><td class="num">1.000</td><td class="num">0.993</td></tr>
+    <tr class="hl"><td>Key A or key B (name, birth date, sex)</td><td class="num">1,977</td><td class="num">0.988</td><td class="num">1.000</td></tr>
+  </table>
+  <p class="small mt">Of 1,953 true pairs. Key B recovers the 14 missed by a mistyped identifier and adds 24 look-alike strangers.</p>
+  <aside class="notes"><p>From the course's run of Lab 1.3 on the committed extracts. The truth file exists only because the data is synthetic; in practice a clerical review of a sample estimates precision. The stretch shows a rule that keeps key-B links only when the two identifiers differ by one transposition: in the course's run it kept 14 of 38 and reached precision and recall of 1.0 on this data.</p></aside>
+</section>
+
+<section class="slide" id="check-hash" data-label="Checkpoint" data-lo="LO1">
+  <div class="kicker">Checkpoint</div>
+  <h2>Safe to send?</h2>
+  <div class="quiz" data-type="single" data-lo="LO1">
+    <p class="lead">Ufuq offers to send SHA-256 of each national identifier instead of the identifier. What do you answer?</p>
+    <div class="opts">
+      <div class="opt" data-why="Treats a reversible hash as anonymisation">Accept: hashed data is anonymous</div>
+      <div class="opt" data-why="Improves only the format while the space stays small enough to enumerate">Accept if they remove spaces first</div>
+      <div class="opt" data-why="Moves the identifier, not the risk: the consortium would then hold identities">Ask for the plain identifier and hash it centrally</div>
+      <div class="opt" data-ok>Ask for a keyed hash of the normalised identifier, with a project key the consortium does not hold</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> A plain hash of a ten-digit identifier is reversed in hours on one core. A secret key held elsewhere makes the pseudonym impossible to recompute for the consortium.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. B is half right: normalisation is needed, but it does not make a plain hash safe.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-1-3" data-auto="lab" data-lab="1.3">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: hashing before normalising; using Python's built-in hash() (salted per process, so two producers never agree); counting pairs within one producer. The enumeration in step 1 takes a few seconds in full mode; quick mode knows one more digit.</p></aside>
 </section>
 
-<!-- Session 4 -->
-
+<!-- ======================= SESSION 4 ======================= -->
 <section class="slide section" id="s4" data-auto="section" data-session="4"></section>
 
-<section class="slide" id="s4-idea" data-lo="LO1">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
+<section class="slide" id="contracts-change" data-label="Change" data-lo="LO1">
+  <div class="kicker">Contracts change</div>
+  <h2>A producer's upgrade is your incident unless the change was agreed</h2>
   <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
+    <div class="card c-coral flat"><h4>January at Ufuq</h4><p class="small mb0">A new hospital system; the extract changed four ways; nobody was told.</p></div>
+    <ul class="bullets small">
+      <li>Versions tell consumers what kind of change it is.</li>
+      <li>Notice gives them time to adapt.</li>
+      <li>Approval makes the consortium, not one engineer, accept the change.</li>
     </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <aside class="notes"><p>Lab 1.4 starts from data/producers/ufuq_v2_sample.csv: 600 rows of Ufuq's January extract. The reference contract (encounter.v1.odcs.yaml) is the output of Lab 1.2's solution, so nobody depends on their own contract from this morning.</p></aside>
 </section>
 
-<section class="slide" id="s4-steps" data-lo="LO1">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="semver-contracts" data-label="Versions" data-lo="LO1">
+  <div class="kicker">Semantic versions</div>
+  <h2>Major for breaking, minor for additive</h2>
+  <table class="t small">
+    <tr><th>Change</th><th>Class</th><th>Version</th></tr>
+    <tr><td>A column removed or renamed</td><td>breaking</td><td>1.0.0 to 2.0.0</td></tr>
+    <tr><td>A type, unit or format changed</td><td>breaking</td><td>major</td></tr>
+    <tr><td>A new value in a closed code set</td><td>breaking</td><td>major</td></tr>
+    <tr><td>A new optional column</td><td>additive</td><td>1.0.0 to 1.1.0</td></tr>
+  </table>
+  <aside class="notes"><p>The contract's version field follows semantic versioning in ODCS. The surprising row is the new code: Ufuq adds disposition 5, home health care. The study's map is closed, so those discharges become nulls and vanish from the rate. For a consumer with a closed list, a new value is breaking.</p></aside>
+</section>
+
+<section class="slide" id="hidden-change" data-label="Hidden change" data-lo="LO1">
+  <div class="kicker">Lab 1.4 · step 3</div>
+  <h2>A rename can hide a unit change that no schema diff shows</h2>
+  <div class="cols cols-2">
+    <div class="trace s">
+      <div class="ev result"><b>schema diff</b><span><code>Creatinine_mgdl</code> removed, <code>Creatinine</code> added</span></div>
+      <div class="ev guard"><b>values</b><span>median 1.00 becomes 89.3: ratio 89.3, the mg/dL-to-µmol/L factor</span></div>
+      <div class="ev final"><b>finding</b><span>renamed and unit changed: two breaking changes</span></div>
+    </div>
+    <div class="callout warn small"><b>The worse case.</b> Had Ufuq kept the old name, every type check would pass and creatinine would jump 88-fold.</div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Numbers from the course's run of Lab 1.4. Only the range rule of the contract (20 to 1,500 µmol/L) would notice in the worse case, and only for values that cross it. Day 2 adds a distribution gate for exactly this.</p></aside>
+</section>
+
+<section class="slide" id="policy-as-data" data-label="Policy as data" data-lo="LO1">
+  <div class="kicker">Lab 1.4 · step 1</div>
+  <h2>Write the policy as data, so it is applied the same way every time</h2>
+  <pre class="code s" data-file="Lab 1.4"><code class="language-python">POLICY = {
+  "breaking": ["removed_column", "renamed_column", "type_change", "unit_change",
+               "format_change", "new_code_in_closed_set", "meaning_change"],
+  "additive": ["new_optional_column", "new_code_in_open_set", "looser_rule"],
+  "notice_days": {"breaking": 60, "additive": 14},
+  "version_bump": {"breaking": "major", "additive": "minor"},
+  "parallel_run_days": 30,
+}</code></pre>
+  <aside class="notes"><p>The numbers (60 days, 14 days, 30 days of parallel run) are the course's choice for the case, not a standard. Participants may choose others and defend them. The approvers in the reference: the consortium data board chaired by Dr. Fadwa Al-Qassabi, the owner of the consuming study, and the data protection officer when a personal-data field changes.</p></aside>
+</section>
+
+<section class="slide" id="ufuq-v2-decision" data-label="The decision" data-lo="LO1">
+  <div class="kicker">Lab 1.4 · step 4</div>
+  <h2>Ufuq version 2: four breaking changes, contract 2.0.0</h2>
+  <table class="t small">
+    <tr><th>Change found</th><th>Class</th></tr>
+    <tr><td><code>DOB</code>: 600 of 600 values no longer dd/mm/yyyy</td><td>breaking</td></tr>
+    <tr><td><code>DischargeStatus</code>: new value 5</td><td>breaking</td></tr>
+    <tr><td><code>Creatinine_mgdl</code> renamed <code>Creatinine</code></td><td>breaking</td></tr>
+    <tr><td><code>Creatinine</code> now in µmol/L</td><td>breaking</td></tr>
+    <tr><td><code>Nationality</code> added</td><td>additive</td></tr>
+  </table>
+  <p class="small mt">60 days' notice, approval by the data board and the study owner, 30 days of both versions.</p>
+  <aside class="notes"><p>From the course's run. Nationality is additive for the schema, but it is a new personal-data field: the data protection officer should see it even though the policy calls it additive. Ask the room whether the policy should say so.</p></aside>
+</section>
+
+<section class="slide" id="parallel-run" data-label="Parallel run" data-lo="LO1">
+  <div class="kicker">After the decision</div>
+  <h2>Notice, a parallel run, then retire the old version</h2>
+  <div class="flow">
+    <div class="step c-teal"><b>Announce</b>what, when, contract version</div>
+    <div class="arrow">→</div>
+    <div class="step c-cyan"><b>Parallel run</b>both versions for 30 days</div>
+    <div class="arrow">→</div>
+    <div class="step c-purple"><b>Retire</b>version 1 after consumers confirm</div>
+  </div>
+  <div class="callout tip small mt"><b>Unannounced breaking delivery:</b> rejected by the gate, re-sent by the producer.</div>
+  <aside class="notes"><p>The stretch of Lab 1.4 drafts the notice Ufuq should have sent. The capstone repository contains the policy and the contract with its version history.</p></aside>
+</section>
+
+<section class="slide" id="check-breaking" data-label="Checkpoint" data-lo="LO1">
+  <div class="kicker">Checkpoint</div>
+  <h2>Minor or major?</h2>
+  <div class="quiz" data-type="single" data-lo="LO1">
+    <p class="lead">Rawdah plans to rename <code>weight_lb</code> to <code>weight</code> and send kilograms. Its engineer calls it a minor clean-up. How do you classify it?</p>
+    <div class="opts">
+      <div class="opt" data-why="Judges a change by its size in the code, not by its effect on consumers">Minor: one column, same data</div>
+      <div class="opt" data-ok>Breaking: a rename and a unit change; major version, notice and a parallel run</div>
+      <div class="opt" data-why="Assumes the unit change is good news, but any consumer converting pounds now divides kilograms">Additive: the new unit is better</div>
+      <div class="opt" data-why="Lets the producer's own judgement replace the agreed policy">Whatever Rawdah decides: it owns the data</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Every consumer that reads <code>weight_lb</code> breaks, and any that converts pounds now gets wrong numbers. Both are breaking under the policy.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. C is the trap: an improvement for the future is still a break for every consumer of the present.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-1-4" data-auto="lab" data-lab="1.4">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: comparing code sets as integers; calling the new Creatinine column additive and missing the rename; treating Nationality as harmless. The one-page policy is the evidence for the outcome: make sure each participant saves policy.md.</p></aside>
 </section>
 
-<section class="slide" id="wrap-up">
+<!-- ======================= CLOSING ======================= -->
+<section class="slide" id="wrap-up" data-label="Recap">
   <div class="kicker">Day 1 · wrap-up</div>
   <h2>Three things to keep</h2>
   <div class="cols cols-3">
-    <div class="card c-teal"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-coral"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-purple"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
+    <div class="card c-teal"><h4>Meaning fails silently</h4><p class="small mb0">Units and codes pass type checks. Profile the distributions and write the fix into the contract.</p></div>
+    <div class="card c-coral"><h4>Link, do not identify</h4><p class="small mb0">Normalise, then a keyed hash with a key held elsewhere. Measure recall and precision.</p></div>
+    <div class="card c-purple"><h4>Change has a process</h4><p class="small mb0">Breaking or additive by policy; versions, notice, approval, a parallel run.</p></div>
   </div>
+  <aside class="notes"><p>Ask each table for the clause they would add first if they ran a feed with several producers at work. Collect two answers.</p></aside>
 </section>
 
 <section class="slide dark" id="next" data-label="Next">
   <div class="kicker">Next</div>
   <h2>Day 2: Prepare at scale</h2>
-  <p class="lead">REPLACE: what participants prepare before then; unfinished labs can be finished at home</p>
-  <aside class="notes">REPLACE: accounts, installs or reading participants need before the next unit</aside>
+  <p class="lead">Thirty million rows on a laptop: lazy queries over partitioned files, loads you can run twice, tables with history, and gates per partition. Set RIMAH_QUICK=1 if your laptop has less than 8 GB of free memory.</p>
+  <aside class="notes"><p>The Day 2 setup cell writes the lake with rimah_lake.py: about 300,000 rows in quick mode in a few seconds, 30 million at full size in a few minutes. Ask participants with Colab to use a CPU runtime; nothing needs a graphics card.</p></aside>
 </section>

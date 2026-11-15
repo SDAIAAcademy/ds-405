@@ -1,13 +1,21 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["polars>=2.0", "pyyaml>=6.0", "psutil>=7.0"]
+# ///
 # %% [markdown]
-# # Lab 3.4 · Run distance-to-closest-record and membership-inference tests on each synthetic table
+# # Lab 3.4 · Attack each synthetic table
 #
 # Day 3 · Session 4 (Privacy is measured by attack) · 25 min.
 #
-# REPLACE: what participants build in this lab, in two or three lines.
+# Run distance-to-closest-record and membership-inference tests on each synthetic table, including a vendor's file, and write the attack report.
 #
 # **Tasks**
-# - [ ] REPLACE: the tasks, each with its minutes; they add up to 25
-# - [ ] ✱ Stretch · REPLACE: an extension for those who finish early
+# - [ ] 1 · Distances to train and to holdout (6')
+# - [ ] 2 · Distance to closest record, per table (6')
+# - [ ] 3 · Membership inference and its AUC (7')
+# - [ ] 4 · The vendor file (3')
+# - [ ] 5 · The attack report (3')
+# - [ ] ✱ Stretch · Attack the linked patient histories, not single rows
 
 # %%
 import os, sys, subprocess
@@ -19,27 +27,11 @@ if IN_COLAB:
     if not Path("/content/ds-405").exists():
         subprocess.run(["git", "clone", "-q", REPO_URL, "/content/ds-405"], check=True)
     os.chdir("/content/ds-405/labs")
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements-colab.txt"], check=True)
 else:
-    while not Path("_tools").exists() and Path.cwd() != Path.cwd().parent:
+    while not Path("rimah.py").exists() and Path.cwd() != Path.cwd().parent:
         os.chdir("..")  # solutions/ notebooks run from labs/
 sys.path.insert(0, os.getcwd())
 
-# %% [markdown]
-# ## 1 · REPLACE: the first task
-#
-# REPLACE: what to do and why, in two sentences.
-
-# %%
-# ✏️ Exercise
-def first_task():
-    # BEGIN SOLUTION
-    return "the reference result"
-    # END SOLUTION
-
-# %%
-# Check, with a safety net: the cells below still run when the exercise is not done yet
-try:
-    result = first_task()
-except NotImplementedError:
-    result = "the reference result"
-print(result)
+import polars as pl
+import rimah as U

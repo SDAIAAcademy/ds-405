@@ -1,0 +1,235 @@
+apiVersion: v3.2.0
+kind: DataContract
+id: rimah-encounter
+name: Encounters for the readmission study
+version: 1.0.0
+status: active
+domain: readmission-study
+dataProduct: rimah-study-feed
+description:
+  purpose: One row per hospital stay from every producer, pooled for the 30-day readmission
+    study.
+  limitations: Identity fields do not travel in this feed; patients are linked by
+    the keyed pseudonym of Lab 1.3.
+  usage: Read by the consortium's preparation pipeline only.
+schema:
+- name: encounter
+  physicalType: table
+  description: One hospital stay, from admission to discharge.
+  properties:
+  - name: encounter_id
+    logicalType: string
+    required: true
+    primaryKey: true
+    description: The producer's own encounter identifier, kept as text.
+  - name: patient_local_id
+    logicalType: string
+    required: true
+    classification: restricted
+    description: The producer's medical record number; linked across producers only
+      through the pseudonym.
+  - name: birth_date
+    logicalType: date
+    required: true
+    classification: restricted
+  - name: sex
+    logicalType: string
+    required: true
+    description: M or F.
+    quality:
+    - id: sex_valid
+      metric: invalidValues
+      arguments:
+        validValues:
+        - M
+        - F
+      mustBe: 0
+  - name: admit_date
+    logicalType: date
+    required: true
+  - name: discharge_date
+    logicalType: date
+    required: true
+  - name: ward
+    logicalType: string
+    required: true
+    description: MED, SURG, CARD, ICU or OBS.
+    quality:
+    - id: ward_valid
+      metric: invalidValues
+      arguments:
+        validValues:
+        - MED
+        - SURG
+        - CARD
+        - ICU
+        - OBS
+      mustBe: 0
+  - name: primary_dx
+    logicalType: string
+    required: true
+    description: ICD-10 code in upper case with the dot after three characters (I50.9).
+    quality:
+    - id: dx_icd10
+      metric: invalidValues
+      arguments:
+        pattern: ^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$
+      mustBe: 0
+  - name: disposition
+    logicalType: string
+    required: true
+    description: HOME, TRANSFER, DIED or LAMA (left against medical advice).
+    quality:
+    - id: disposition_valid
+      metric: invalidValues
+      arguments:
+        validValues:
+        - HOME
+        - TRANSFER
+        - DIED
+        - LAMA
+      mustBe: 0
+  - name: weight_kg
+    logicalType: number
+    required: false
+    description: Body weight in kilograms.
+    quality:
+    - id: weight_plausible
+      metric: invalidValues
+      arguments:
+        minimum: 1
+        maximum: 350
+      mustBeLessThan: 0.5
+      unit: percent
+      description: 'minimum and maximum: course extension'
+  - name: creatinine_umol_l
+    logicalType: number
+    required: false
+    description: Serum creatinine at admission in micromoles per litre.
+    quality:
+    - id: creatinine_plausible
+      metric: invalidValues
+      arguments:
+        minimum: 20
+        maximum: 1500
+      mustBeLessThan: 0.5
+      unit: percent
+      description: 'minimum and maximum: course extension'
+  quality:
+  - id: encounter_unique
+    metric: duplicateValues
+    arguments:
+      properties:
+      - encounter_id
+    mustBe: 0
+  - id: discharge_after_admit
+    type: sql
+    query: SELECT COUNT(*) FROM {object} WHERE discharge_date < admit_date
+    mustBe: 0
+  - id: not_empty
+    metric: rowCount
+    mustBeGreaterThan: 0
+slaProperties:
+- property: latency
+  value: 2
+  unit: d
+  description: The newest admission in a delivery is at most two days older than the
+    delivery.
+- property: frequency
+  value: 1
+  unit: d
+team:
+  name: Rimah data preparation
+  members:
+  - username: yousra.aldahmash
+    role: Contract owner
+  - username: atiyah.almaghlouth
+    role: Consumer (readmission study)
+customProperties:
+- property: producers
+  value:
+    SDR:
+      columns:
+        encounter_id: encounter_id
+        patient_local_id: patient_id
+        birth_date: birth_date
+        sex: sex
+        admit_date: admit_date
+        discharge_date: discharge_date
+        ward: ward
+        primary_dx: primary_dx
+        disposition: disposition
+        weight_kg: weight_kg
+        creatinine_umol_l: creatinine_umol_l
+      transforms:
+        primary_dx: icd10_dot
+    UFQ:
+      columns:
+        encounter_id: EncounterNo
+        patient_local_id: MRN
+        birth_date: DOB
+        sex: Gender
+        admit_date: AdmissionDate
+        discharge_date: DischargeDate
+        ward: Department
+        primary_dx: DiagnosisCode
+        disposition: DischargeStatus
+        weight_kg: WeightKg
+        creatinine_umol_l: Creatinine_mgdl
+      date_formats:
+        birth_date: '%d/%m/%Y'
+        admit_date: '%d/%m/%Y'
+        discharge_date: '%d/%m/%Y'
+      codes:
+        sex:
+          Male: M
+          Female: F
+        ward:
+          INT-MED: MED
+          GEN-SURG: SURG
+          CARDIO: CARD
+          ICU: ICU
+          OBGYN: OBS
+        disposition:
+          '1': HOME
+          '2': TRANSFER
+          '3': DIED
+          '4': LAMA
+      transforms:
+        primary_dx: icd10_dot
+      units:
+        creatinine_umol_l: 88.42
+    RWD:
+      columns:
+        encounter_id: enc_id
+        patient_local_id: pt_id
+        birth_date: dob
+        sex: sex
+        admit_date: adm_dt
+        discharge_date: dis_dt
+        ward: unit
+        primary_dx: icd10
+        disposition: disp
+        weight_kg: weight_lb
+        creatinine_umol_l: creat_umol
+      date_formats:
+        birth_date: '%Y%m%d'
+      codes:
+        sex:
+          '1': M
+          '2': F
+        ward:
+          M: MED
+          S: SURG
+          C: CARD
+          I: ICU
+          O: OBS
+        disposition:
+          '01': HOME
+          '02': TRANSFER
+          '03': DIED
+          '04': LAMA
+      transforms:
+        primary_dx: icd10_dot
+      units:
+        weight_kg: 0.453592

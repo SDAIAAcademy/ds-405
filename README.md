@@ -39,7 +39,18 @@ Participants run data preparation for the fictional Rimah Health Data Consortium
 
 ## Case study
 
-**REPLACE: the name of the fictional organisation every lab works on.** REPLACE: two sentences on the case study and its synthetic data
+**Rimah Health Data Consortium** (fictional). Rimah Health Data Consortium is a fictional consortium of three hospital groups (Sidra Hospitals, Ufuq Medical Group and Rawdah Hospitals) that send encounter, laboratory and pharmacy extracts for a 30-day readmission study, while a university partner asks for a copy. Participants contract and link the three producers, rebuild preparation as an incremental pipeline over partitioned columnar tables, generate and attack synthetic patient and encounter tables, spend a privacy budget over twelve monthly releases, pool a rate without pooling records, and write the release decision for the university. All data is synthetic, generated with a fixed seed, with planted identifiers and planted problems.
+
+| Persona | Role |
+|---|---|
+| Dr. Fadwa Al-Qassabi | Consortium director; chairs the release board |
+| Ghanem Al-Mutawakkil | Data protection officer; signs the release decision |
+| Ihab Al-Qadi, Kinan Al-Rakhees, Ashjan Al-Essa | Data engineers of the three producers (Sidra, Ufuq, Rawdah) |
+| Atiyah Al-Maghlouth | Epidemiologist who leads the readmission study |
+| Prof. Adnan Al-Shuwaiman | University partner who requests a copy |
+| Yousra Al-Dahmash | Data preparation and privacy engineer: the participant's role |
+
+No lab calls a language model or downloads one; everything runs on a laptop processor or in Google Colab. The Day 2 lake is written on demand (30 million rows at full size, 1% with `RIMAH_QUICK=1`).
 
 <!-- academy:labs -->
 ## Labs
@@ -70,7 +81,13 @@ Every lab is a notebook in `labs/`. Open it in Google Colab from the course page
 
 A release package for one of three data requests (contracts, pipeline, protected or synthetic dataset with utility and attack report, release decision) in a public repository whose README reports measured results, defended in ten minutes
 
-**Submission:** REPLACE: what participants submit and how: a public repository link, or a shared folder for a course without code
+**Submission:** A public GitHub repository holding the release package for one of the three requests: the contracts and the pipeline that build the data, the protected or synthetic dataset with its utility and attack report, and the release decision record. Its README reports the measured results with the commands that reproduce them. Then a ten-minute defence, questions included, in which the participant re-runs one attack on a table the assessor chooses.
+
+The three requests: **R-A**, the university partner's copy for readmission modelling; **R-B**, a teaching dataset for a public data challenge; **R-C**, monthly readmission statistics for a ministry dashboard. Each participant chooses one.
+
+**Assessment.** Supervised entry and exit checks of fundamentals without AI assistance (20%); the capstone rubric: contracts and pipeline 25, synthetic data validation 25, privacy method and risk 25, release decision 15, reproducibility 10 (60%); the live defence of the release decision (20%). Passing: 70% overall and at least 60% on the capstone rubric. In the defence the participant re-runs one attack on a table the assessor chooses; run logs and commit history are the evidence of authorship.
+
+**AI use.** AI off for the supervised checks and the first contract (Lab 1.2). In the other labs an AI tutor may explain errors but writes no generator or attack code. AI is allowed in full for the capstone, which is defended live.
 
 ## Prerequisites
 
@@ -133,8 +150,8 @@ Each line is a capability; the examples are interchangeable.
 
 ### National references
 
-- Personal Data Protection Law and its implementing regulations: REPLACE: the address of the official text
-- SDAIA PDPL guideline on destruction, anonymisation and pseudonymisation of personal data: REPLACE: the address of the official text
-- General Rules for Secondary Use of Data: REPLACE: the address of the official text
-- NDMO Data Sharing Policy: REPLACE: the address of the official text
-- NDMO Data Classification Policy: REPLACE: the address of the official text
+- Personal Data Protection Law and its implementing regulations: <https://sdaia.gov.sa/en/SDAIA/about/Documents/PersonalDataProtectionLaw.pdf> and <https://sdaia.gov.sa/en/SDAIA/about/Documents/ImplementingRegulationPersonalDataProtectionLaw.pdf>
+- SDAIA PDPL guideline on destruction, anonymisation and pseudonymisation of personal data: <https://sdaia.gov.sa/Documents/PersonalDataDestructionAnonymizationAndEncryptionGuideline.pdf>
+- General Rules for Secondary Use of Data: <https://sdaia.gov.sa/Documents/GeneralRulesForSecondaryUseOfData_EN.pdf>
+- NDMO Data Sharing Policy: <https://sdaia.gov.sa/en/SDAIA/about/Documents/DataSharingPolicyEN.pdf>
+- NDMO Data Classification Policy: <https://sdaia.gov.sa/en/SDAIA/about/Documents/DataClassificationPolicy.pdf>

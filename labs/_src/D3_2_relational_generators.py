@@ -1,13 +1,21 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["polars>=2.0", "pyyaml>=6.0", "psutil>=7.0"]
+# ///
 # %% [markdown]
-# # Lab 3.2 · Fit two generators to the patient and encounter tables, keeping the parent-child relation
+# # Lab 3.2 · Two generators for related tables
 #
 # Day 3 · Session 2 (Generating related tables) · 25 min.
 #
-# REPLACE: what participants build in this lab, in two or three lines.
+# Fit two generators to the patient and encounter tables, an independent baseline and a hierarchical copula that keeps the parent-child relation, and check what each kept.
 #
 # **Tasks**
-# - [ ] REPLACE: the tasks, each with its minutes; they add up to 25
-# - [ ] ✱ Stretch · REPLACE: an extension for those who finish early
+# - [ ] 1 · The relation: encounters per patient (4')
+# - [ ] 2 · Baseline: each column on its own (5')
+# - [ ] 3 · The copula: parents with their child counts (7')
+# - [ ] 4 · Children conditioned on their parent (6')
+# - [ ] 5 · Integrity and relation checks (3')
+# - [ ] ✱ Stretch · Fit SDV's HMASynthesizer to the same tables in Colab
 
 # %%
 import os, sys, subprocess
@@ -19,27 +27,11 @@ if IN_COLAB:
     if not Path("/content/ds-405").exists():
         subprocess.run(["git", "clone", "-q", REPO_URL, "/content/ds-405"], check=True)
     os.chdir("/content/ds-405/labs")
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements-colab.txt"], check=True)
 else:
-    while not Path("_tools").exists() and Path.cwd() != Path.cwd().parent:
+    while not Path("rimah.py").exists() and Path.cwd() != Path.cwd().parent:
         os.chdir("..")  # solutions/ notebooks run from labs/
 sys.path.insert(0, os.getcwd())
 
-# %% [markdown]
-# ## 1 · REPLACE: the first task
-#
-# REPLACE: what to do and why, in two sentences.
-
-# %%
-# ✏️ Exercise
-def first_task():
-    # BEGIN SOLUTION
-    return "the reference result"
-    # END SOLUTION
-
-# %%
-# Check, with a safety net: the cells below still run when the exercise is not done yet
-try:
-    result = first_task()
-except NotImplementedError:
-    result = "the reference result"
-print(result)
+import polars as pl
+import rimah as U
