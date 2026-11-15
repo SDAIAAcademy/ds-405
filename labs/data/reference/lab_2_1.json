@@ -1,0 +1,130 @@
+{
+ "result": [
+  {
+   "encounters": 333,
+   "high_glucose": 0.07807807807807808,
+   "max_creat": 139.2129669189453,
+   "month": "2025-07",
+   "producer": "RWD"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.0960960960960961,
+   "max_creat": 141.97853088378906,
+   "month": "2025-08",
+   "producer": "RWD"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.0960960960960961,
+   "max_creat": 1.5623723268508911,
+   "month": "2025-09",
+   "producer": "RWD"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.08708708708708708,
+   "max_creat": 138.51876831054688,
+   "month": "2025-10",
+   "producer": "RWD"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.07807807807807808,
+   "max_creat": 139.53555297851562,
+   "month": "2025-11",
+   "producer": "RWD"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.12012012012012012,
+   "max_creat": 139.57528686523438,
+   "month": "2025-12",
+   "producer": "RWD"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.1111111111111111,
+   "max_creat": 137.60140991210938,
+   "month": "2025-07",
+   "producer": "SDR"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.08108108108108109,
+   "max_creat": 141.6266326904297,
+   "month": "2025-08",
+   "producer": "SDR"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.1021021021021021,
+   "max_creat": 138.3415985107422,
+   "month": "2025-09",
+   "producer": "SDR"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.13813813813813813,
+   "max_creat": 137.42909240722656,
+   "month": "2025-10",
+   "producer": "SDR"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.11411411411411411,
+   "max_creat": 139.74122619628906,
+   "month": "2025-11",
+   "producer": "SDR"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.09309309309309309,
+   "max_creat": 141.36195373535156,
+   "month": "2025-12",
+   "producer": "SDR"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.08408408408408409,
+   "max_creat": 137.5441131591797,
+   "month": "2025-07",
+   "producer": "UFQ"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.08408408408408409,
+   "max_creat": 145.44381713867188,
+   "month": "2025-08",
+   "producer": "UFQ"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.15015015015015015,
+   "max_creat": 136.4835205078125,
+   "month": "2025-09",
+   "producer": "UFQ"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.10510510510510511,
+   "max_creat": 139.47225952148438,
+   "month": "2025-10",
+   "producer": "UFQ"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.07507507507507508,
+   "max_creat": 140.01116943359375,
+   "month": "2025-11",
+   "producer": "UFQ"
+  },
+  {
+   "encounters": 333,
+   "high_glucose": 0.08708708708708708,
+   "max_creat": 141.13597106933594,
+   "month": "2025-12",
+   "producer": "UFQ"
+  }
+ ]
+}

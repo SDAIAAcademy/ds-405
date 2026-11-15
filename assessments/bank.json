@@ -233,6 +233,238 @@
       "level": "understand",
       "pool": "practice",
       "weight": 1
+    },
+    {
+      "id": "q-d2-pushdown",
+      "type": "single",
+      "prompt": "A lazy query over the partitioned lake filters on month = '2025-09' and test_code = 'CREAT' and selects two columns. What does the plan let the scan skip?",
+      "options": [
+        "Nothing: lazy only delays the same work",
+        "Only the columns it does not select",
+        "Every partition file whose month is not 2025-09, and every column the query does not need",
+        "Every row group, because the test filter is applied after loading"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Hive partition values prune whole files and projection pushdown reads only the needed columns; the plan shows both on the scan.",
+      "misconceptions": [
+        "Confuses deferring work with reducing it",
+        "Forgets partition pruning by the folder names",
+        "",
+        "Assumes filters run after the scan instead of inside it"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": "day2",
+      "session": 1,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d2-memory",
+      "type": "single",
+      "prompt": "On 30 million rows an eager script peaks at 2.7 GB and the streaming lazy query at 112 MB, with the same result. What explains most of the difference?",
+      "options": [
+        "The lazy query reads only the needed partitions and columns and aggregates batch by batch",
+        "Polars compresses data in memory better than pandas",
+        "The eager script has a bug that copies the data",
+        "The streaming engine uses the disk instead of memory for everything"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The eager script loads every row and column before filtering; the lazy plan reads less and the streaming engine never holds the whole result of the scan.",
+      "misconceptions": [
+        "",
+        "Credits the library instead of the amount of data read",
+        "Assumes a defect when the design reads everything by intent",
+        "Confuses batching with spilling all data to disk"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": "day2",
+      "session": 1,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d2-append-retry",
+      "type": "single",
+      "prompt": "A nightly load appends the day's file. It crashed after writing and the scheduler re-ran it. What do you find in the morning?",
+      "options": [
+        "An error in the log and an empty day",
+        "The day's rows twice, and no error anywhere",
+        "The day's rows once, because the table rejects duplicates",
+        "A corrupted table that cannot be read"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "An append is not idempotent: the second run adds the same rows again, and nothing in the file or the table complains.",
+      "misconceptions": [
+        "Expects a re-run to fail loudly",
+        "",
+        "Assumes a table enforces a key it was never given",
+        "Confuses a duplicated write with a broken one"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": "day2",
+      "session": 2,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d2-proof",
+      "type": "single",
+      "prompt": "Which test proves that a daily load is idempotent?",
+      "options": [
+        "The load finishes without errors twice in a row",
+        "Row counts after one load and after two loads are within 1%",
+        "The table has no null values after the second load",
+        "A fingerprint of the table after loading every day once equals the fingerprint after loading every day twice"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Identical output when a day is re-run is shown by equal content fingerprints that ignore row order and file layout.",
+      "misconceptions": [
+        "Takes absence of errors as proof of identical content",
+        "Accepts a tolerance where identity is required",
+        "Checks a quality property instead of sameness",
+        ""
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": "day2",
+      "session": 2,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d2-time-travel",
+      "type": "single",
+      "prompt": "The December figures sent to the board were built from the curated table. Since then, corrections were merged. The run log recorded version 1. How do you reproduce the board's figures?",
+      "options": [
+        "Rebuild from today's table and subtract the corrections",
+        "Read the table at version 1, rebuild the analysis and compare its fingerprint with the recorded one",
+        "Restore last month's backup of the whole lake",
+        "Re-run the analysis today: the figures are close enough"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Time travel to the recorded version rebuilds exactly what was read, and the fingerprint proves the rebuild is identical.",
+      "misconceptions": [
+        "Reverses changes by hand instead of reading the old version",
+        "",
+        "Uses a coarse backup when the table keeps its own versions",
+        "Accepts different numbers as a reproduction"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": "day2",
+      "session": 3,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d2-vacuum",
+      "type": "single",
+      "prompt": "Why can vacuuming a table with a short retention break reproducibility?",
+      "options": [
+        "It deletes the data files that older versions still need",
+        "It deletes the commit log, so versions lose their numbers",
+        "It rewrites every file, changing all fingerprints",
+        "It never does: vacuum only removes temporary files"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Vacuum removes files no longer referenced by the current version; time travel to an older version then fails for lack of its files.",
+      "misconceptions": [
+        "",
+        "Confuses removing data files with removing the log",
+        "Assumes vacuum rewrites current data",
+        "Ignores that old versions' files are exactly what vacuum removes"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": "day2",
+      "session": 3,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d2-per-partition",
+      "type": "single",
+      "prompt": "One of 36 laboratory partitions fails its range gate with 16.7% invalid results. Why gate per partition rather than per load?",
+      "options": [
+        "Partitions are faster to check than the whole table",
+        "A per-load gate cannot compute shares",
+        "One bad delivery is quarantined while the other partitions are published",
+        "Per-partition gates need no rules in the contract"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Blocking per partition stops only the failing producer and month; the rest of the data reaches the study, with the gap flagged.",
+      "misconceptions": [
+        "Picks a speed reason for a decision about blocking",
+        "Assumes the rule cannot be computed on a whole load",
+        "",
+        "Thinks the gate replaces the contract's rules"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": "day2",
+      "session": 4,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-d2-lineage",
+      "type": "single",
+      "prompt": "A monthly figure dips in September. With OpenLineage run events for every job, how do you find the cause?",
+      "options": [
+        "Read the pipeline code line by line",
+        "Walk the events backwards from the figure's dataset to the runs that wrote it and the partitions they read, then inspect September's partitions",
+        "Ask each producer whether they changed anything",
+        "Re-run the whole pipeline and see if the dip remains"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Lineage events record inputs and outputs per run, so the upstream walk narrows the dip to a handful of partitions whose data can be checked.",
+      "misconceptions": [
+        "Ignores the events that record what each run actually read",
+        "",
+        "Starts with people instead of the evidence that narrows the question",
+        "Repeats the problem without locating it"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": "day2",
+      "session": 4,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
     }
   ]
 }

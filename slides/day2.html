@@ -1,158 +1,430 @@
 <section class="slide title" id="title" data-auto="title">
-  <aside class="notes">REPLACE: welcome; introduce yourself; one question to the room that calibrates the pace; the rhythm of the day</aside>
+  <aside class="notes"><p>Open with yesterday's Lab 1.2 table: Ufuq failed on freshness and duplicates. Today the same contract runs on 30 million rows, every morning, and must give the same answer when a load runs twice. Remind participants with less than 8 GB free memory to set RIMAH_QUICK=1 before the first setup cell.</p></aside>
 </section>
 
 <section class="slide" id="agenda" data-auto="agenda"></section>
 
-<!-- Session 1 -->
-
-<section class="slide section" id="s1" data-auto="section" data-session="1"></section>
-
-<section class="slide" id="s1-idea" data-lo="LO2">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="review-day1" data-label="Review" data-lo="LO1">
+  <div class="kicker">Review of Day 1</div>
+  <h2>Yesterday in one decision</h2>
+  <div class="quiz" data-type="single" data-lo="LO1">
+    <p class="lead">Rawdah tells you that from next month its weight column will hold kilograms, under the same name. What do you do first?</p>
+    <div class="opts">
+      <div class="opt" data-ok>Classify it under the policy as a breaking unit change: new major version, notice, a parallel run</div>
+      <div class="opt" data-why="Assumes a change towards the standard unit cannot hurt, when every consumer that converts pounds now divides kilograms">Thank them and remove the unit clause from the contract the same day</div>
+      <div class="opt" data-why="Moves the fix into one consumer's code where the other consumers never see it">Add an if-statement on the date in the study's pipeline</div>
+      <div class="opt" data-why="Trusts a range rule that pounds and kilograms both pass">Nothing: the range rule will catch any problem</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Same name, new unit is the change no schema diff shows. The policy treats it as breaking so that every consumer moves together.</div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <aside class="notes"><p>Answer: A. Two minutes. If the room hesitates, show the hidden-change slide from Day 1 again.</p></aside>
 </section>
 
-<section class="slide" id="s1-steps" data-lo="LO2">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<!-- ======================= SESSION 1 ======================= -->
+<section class="slide section" id="s1" data-auto="section" data-session="1"></section>
+
+<section class="slide" id="the-lake" data-label="The lake" data-lo="LO2">
+  <div class="kicker">The data today</div>
+  <h2>Thirty million rows in 88 MB of partitioned Parquet</h2>
+  <div class="cols cols-2">
+    <table class="t small">
+      <tr><th>Table</th><th class="num">Rows</th></tr>
+      <tr><td>encounters</td><td class="num">1,200,024</td></tr>
+      <tr><td>labs (six tests, three rounds)</td><td class="num">21,600,432</td></tr>
+      <tr><td>pharmacy</td><td class="num">7,200,144</td></tr>
+      <tr class="hl"><td>total</td><td class="num">30,000,600</td></tr>
+    </table>
+    <pre class="code s" data-file="data/lake/raw"><code>labs/producer=SDR/month=2025-01/part-0.parquet
+labs/producer=SDR/month=2025-02/part-0.parquet
+...
+labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>The setup cell runs rimah_lake.py with a fixed seed. On the course's laptop the full lake took about 55 seconds to write and is 88 MB on disk: Parquet compresses repeated identifiers and codes well. Quick mode writes 1 percent (299,700 rows) in about two seconds. Partitions are folders named key=value: producer and month.</p></aside>
+</section>
+
+<section class="slide" id="rows-vs-columns" data-label="Columns" data-lo="LO2">
+  <div class="kicker">Columnar files</div>
+  <h2>A query that needs three columns should read three columns</h2>
+  <div class="cols cols-2">
+    <div class="card c-coral flat"><h4>A row file (CSV)</h4><p class="small mb0">Every row is read whole to find three fields in it. Types are guessed on every read.</p></div>
+    <div class="card c-teal flat"><h4>A column file (Parquet)</h4><p class="small mb0">Each column is stored apart, typed and compressed, with statistics per block, so a reader skips columns and blocks it does not need.</p></div>
+  </div>
+  <p class="small mt">Partitions add a third skip: whole files, by the values in the folder names.</p>
+  <aside class="notes"><p>Ask the room what the three skips are: columns (projection), blocks inside a file (statistics), files (partitions). The lab measures what they are worth on this lake.</p></aside>
+</section>
+
+<section class="slide" id="lazy-plans" data-label="Lazy plans" data-lo="LO2">
+  <div class="kicker">Lab 2.1 · step 2</div>
+  <h2>A lazy query is a plan the optimiser can push into the scan</h2>
+  <pre class="code s" data-file="q.explain()"><code>simple π 2/2 ["encounter_id", "value"]
+  Parquet SCAN [.../producer=RWD/month=2025-09/part-0.parquet, ... 2 other sources]
+  PROJECT 4/8 COLUMNS
+  SELECTION: (col("month") == "2025-09") &amp; (col("test_code") == "CREAT")</code></pre>
+  <ul class="bullets small mt-s">
+    <li><b>3 of 36 files</b> opened: the month filter pruned the rest.</li>
+    <li><b>4 of 8 columns</b> read: the select and the filter need no more.</li>
+  </ul>
+  <aside class="notes"><p>From the course's run on the full lake with Polars 2.1. Show explain() live. A common surprise: the filter on test_code is applied while scanning, not after loading. DuckDB does the same with read_parquet(..., hive_partitioning = true): the stretch compares them.</p></aside>
+</section>
+
+<section class="slide" id="eager-vs-lazy" data-label="Measured" data-lo="LO2">
+  <div class="kicker">Lab 2.1 · steps 1, 4 and 5</div>
+  <h2>Same answer: 40 times faster, a 25th of the memory</h2>
+  <table class="t small">
+    <tr><th>Query on 30 million rows</th><th class="num">Seconds</th><th class="num">Peak memory, MB</th></tr>
+    <tr><td>Eager script (pandas, reads everything)</td><td class="num">19.6</td><td class="num">2,693</td></tr>
+    <tr><td>Lazy query (Polars)</td><td class="num">0.58</td><td class="num">391</td></tr>
+    <tr class="hl"><td>Lazy, streaming engine</td><td class="num">0.47</td><td class="num">112</td></tr>
+    <tr><td>DuckDB SQL, same files (stretch)</td><td class="num">1.70</td><td class="num">198</td></tr>
+  </table>
+  <p class="caption">One run on a 14-thread laptop with 34 GB of memory. Your numbers will differ; the order will not.</p>
+  <aside class="notes"><p>Measured with U.measure, which samples the process's resident memory every few milliseconds (tracemalloc would miss memory held by Arrow and Polars). Single runs, not averages: say so. The point is the shape: the eager script's peak grows with the lake; the streaming engine's does not. On a laptop with 8 GB the eager script at full size is close to failing.</p></aside>
+</section>
+
+<section class="slide" id="same-result-first" data-label="Same result" data-lo="LO2">
+  <div class="kicker">Lab 2.1 · step 4</div>
+  <h2>A faster query with another answer is a bug</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>Compare every key and value, with a tolerance stated for floats.</li>
+      <li>Watch joins: an inner join on a filtered side silently drops rows.</li>
+      <li>Watch nulls: <code>mean</code> skips them in both tools, <code>len</code> counts them.</li>
+    </ul>
+    <div class="card c-coral flat"><h4>Already in the output</h4><p class="small mb0">Rawdah, September: mean highest creatinine <b>1.57</b>, other months about 140. Lab 2.4 finds out why.</p></div>
+  </div>
+  <aside class="notes"><p>Both scripts reproduce the planted defect faithfully: correctness of a rewrite is not correctness of the data. Point at the 1.57 and promise the answer for session 4.</p></aside>
+</section>
+
+<section class="slide" id="streaming" data-label="Streaming" data-lo="LO2">
+  <div class="kicker">Larger than memory</div>
+  <h2>Streaming processes the files in batches, so memory stays flat</h2>
+  <div class="flow">
+    <div class="step c-teal"><b>Scan</b>a batch of row groups</div>
+    <div class="arrow">→</div>
+    <div class="step c-cyan"><b>Filter and project</b>in the batch</div>
+    <div class="arrow">→</div>
+    <div class="step c-purple"><b>Partial aggregates</b>kept, batch dropped</div>
+  </div>
+  <div class="callout note small mt"><b>Not every operation streams.</b> A global sort or a wide join may fall back to memory. Check the plan, and measure at full size once.</div>
+  <aside class="notes"><p>collect(engine="streaming") in Polars; DuckDB spills to disk when its memory limit is reached. Both are named in the tool slot as interchangeable. Sources: the Polars user guide pages on the lazy API and streaming.</p></aside>
+</section>
+
+<section class="slide" id="check-lazy" data-label="Checkpoint" data-lo="LO2">
+  <div class="kicker">Checkpoint</div>
+  <h2>Where the filter goes</h2>
+  <div class="quiz" data-type="single" data-lo="LO2">
+    <p class="lead">Your lazy query on the lake is fast but its peak memory is the same as the eager script's. Which change most likely helps?</p>
+    <div class="opts">
+      <div class="opt" data-why="Assumes a bigger file format fixes a query that reads too much">Convert the Parquet files to CSV</div>
+      <div class="opt" data-why="Adds threads to a problem of bytes read">Run it on more CPU cores</div>
+      <div class="opt" data-why="Caches the very data that should never have been loaded">Collect the labs table first, then filter it</div>
+      <div class="opt" data-ok>Read the plan: put the month and test filters on the scan and select only needed columns</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Memory follows what is read. If the plan shows a full projection or no selection on the scan, the query reads everything; pushing filters and columns down is what saves memory.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. C is the eager script in disguise: collect() before filter() loads all 21.6 million laboratory rows.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-2-1" data-auto="lab" data-lab="2.1">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: forgetting hive_partitioning=True (no producer or month columns); joining before filtering by month; comparing float columns for exact equality. In quick mode the times are all under a few seconds: the slide holds the full-size numbers. In Colab, the full lake fits on a CPU runtime.</p></aside>
 </section>
 
-<!-- Session 2 -->
-
+<!-- ======================= SESSION 2 ======================= -->
 <section class="slide section" id="s2" data-auto="section" data-session="2"></section>
 
-<section class="slide" id="s2-idea" data-lo="LO2">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="loads-run-twice" data-label="Run twice" data-lo="LO2">
+  <div class="kicker">Real schedules</div>
+  <h2>Every load will run twice one day</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-coral"><h4>Retry</h4><p class="small mb0">The load wrote, then failed before saying "done"; the scheduler runs it again.</p></div>
+    <div class="card c-amber"><h4>Re-delivery</h4><p class="small mb0">Ufuq sends 2026-01-03 again with 20 values corrected.</p></div>
+    <div class="card c-purple"><h4>Late correction</h4><p class="small mb0">Sidra's 2026-01-05 file corrects 15 results of 2026-01-02.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <p class="small mt"><b>Idempotent:</b> running a load twice leaves the table exactly as running it once.</p>
+  <aside class="notes"><p>All three are planted in data/lake/landing. Ask who has seen a dashboard double for one day after a re-run. Most hands go up.</p></aside>
 </section>
 
-<section class="slide" id="s2-steps" data-lo="LO2">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="append-doubles" data-label="Append" data-lo="LO2">
+  <div class="kicker">Lab 2.2 · step 1</div>
+  <h2>An append load run twice doubles the day, with no error anywhere</h2>
+  <div class="cols cols-2">
+    <div class="stat center"><div class="big">59,994 → 119,988</div><div class="lbl">rows after loading 2026-01-01 a second time</div></div>
+    <ul class="bullets small">
+      <li>Every key duplicated; counts and rates downstream double for that day.</li>
+      <li>Nothing fails: the file is valid, the table accepts it.</li>
+    </ul>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Full-size numbers from the course's run. A duplicate check on the business key (encounter, test, round) would catch it after the fact; the fix is a load that cannot produce it.</p></aside>
+</section>
+
+<section class="slide" id="fingerprint" data-label="Fingerprint" data-lo="LO2">
+  <div class="kicker">Lab 2.2 · step 2</div>
+  <h2>"Same table" means same content, in any order and any files</h2>
+  <pre class="code s" data-file="Lab 2.2"><code class="language-python">def table_hash(df):
+    d = df.select(COLS).sort(KEY)          # fixed columns, fixed order
+    return hashlib.sha256(d.write_csv().encode()).hexdigest()[:16]</code></pre>
+  <p class="small mt-s">Two tables with the same fingerprint hold the same rows. That is the proof the outcome asks for: identical output when a day is re-run.</p>
+  <aside class="notes"><p>Leave out columns that legitimately change between runs (a load timestamp). Here the delivered_day is left out because a re-sent day keeps its date anyway. U.fingerprint in the helper does the same with column hashes, faster on big tables.</p></aside>
+</section>
+
+<section class="slide" id="partition-overwrite" data-label="Overwrite" data-lo="LO2">
+  <div class="kicker">Lab 2.2 · step 3</div>
+  <h2>Overwrite the day's partition: a re-run replaces, never adds</h2>
+  <pre class="code s" data-file="Lab 2.2"><code class="language-python">df.write_delta(table, mode="overwrite",
+    delta_write_options={"predicate": f"delivered_day = '{day}'",
+                         "partition_by": ["delivered_day"]})</code></pre>
+  <div class="callout warn small mt"><b>Its limit.</b> Days 1 to 5 by overwrite: 299,991 rows, <b>15 duplicate keys</b>: Sidra's corrections landed in day 5's partition, the originals stayed in day 2's.</div>
+  <aside class="notes"><p>Delta Lake's overwrite with a predicate rewrites only the matching rows in one atomic commit. Ufuq's re-sent day is handled: the newer file replaces the day.</p></aside>
+</section>
+
+<section class="slide" id="merge-on-key" data-label="Merge" data-lo="LO2">
+  <div class="kicker">Lab 2.2 · step 4</div>
+  <h2>Merge on the business key: corrections replace what they correct</h2>
+  <pre class="code s" data-file="Lab 2.2"><code class="language-python">DeltaTable(table).merge(df.to_arrow(),
+    predicate="t.encounter_id = s.encounter_id AND t.test_code = s.test_code "
+              "AND t.result_seq = s.result_seq",
+    source_alias="s", target_alias="t") \
+  .when_matched_update_all().when_not_matched_insert_all().execute()</code></pre>
+  <p class="small mt-s">Days 1 to 5 by merge: 299,976 rows, <b>0 duplicate keys</b>.</p>
+  <aside class="notes"><p>The business key is what the producer means by "the same result": encounter, test and round. A key that is too narrow merges different results; too wide, and corrections insert instead of update. The contract should name the key.</p></aside>
+</section>
+
+<section class="slide" id="proof-twice" data-label="The proof" data-lo="LO2">
+  <div class="kicker">Lab 2.2 · step 5</div>
+  <h2>The proof: every day loaded twice gives the same fingerprint</h2>
+  <div class="trace s">
+    <div class="ev result"><b>once</b><span>days 1, 2, 3, 4, 5 → <code>fa71c591dcabaeb1</code></span></div>
+    <div class="ev result"><b>twice</b><span>days 1 to 5, again 1 to 5, and day 3 a third time → <code>fa71c591dcabaeb1</code></span></div>
+    <div class="ev final"><b>result</b><span>identical output when a day is re-run</span></div>
+  </div>
+  <div class="callout note small mt"><b>Order still matters.</b> Replaying day 2 after day 5 puts the old values back until day 5 is replayed. Real pipelines compare a delivery version before updating.</div>
+  <aside class="notes"><p>Full-size fingerprints from the course's run. The note is honest about the limit of "update all": in the twice-run, the second pass over day 2 reverts Sidra's corrections and the second pass over day 5 restores them. A when_matched_update with a condition on a delivery sequence number fixes it; it is a good capstone refinement.</p></aside>
+</section>
+
+<section class="slide" id="check-idempotent" data-label="Checkpoint" data-lo="LO2">
+  <div class="kicker">Checkpoint</div>
+  <h2>Which load survives Sidra?</h2>
+  <div class="quiz" data-type="single" data-lo="LO2">
+    <p class="lead">Sidra's delivery on day 5 corrects results first delivered on day 2. Which load leaves exactly one row per result, holding the corrected value?</p>
+    <div class="opts">
+      <div class="opt" data-why="Repeats every row each time the day is loaded">Append each day's file</div>
+      <div class="opt" data-ok>Merge each day's file on encounter, test and round</div>
+      <div class="opt" data-why="Replaces day 5's partition but leaves the originals in day 2's">Overwrite each day's partition</div>
+      <div class="opt" data-why="Removes duplicates by every column, so the corrected and original rows both stay">Append, then drop rows that are identical in every column</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Only matching on the business key finds the earlier row a correction refers to, wherever it was loaded.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. D is a common trap: a corrected row differs in its value, so it is not an identical duplicate.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-2-2" data-auto="lab" data-lab="2.2">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: an overwrite without a predicate (it replaces the whole table: the fingerprint test catches it); a merge predicate missing one key column (the 15 corrections insert); hashing a table that still has a load timestamp column. On Windows, keep the course folder short: Delta file names are long.</p></aside>
 </section>
 
-<!-- Session 3 -->
-
+<!-- ======================= SESSION 3 ======================= -->
 <section class="slide section" id="s3" data-auto="section" data-session="3"></section>
 
-<section class="slide" id="s3-idea" data-lo="LO2">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
+<section class="slide" id="reproduce-question" data-label="The question" data-lo="LO2">
+  <div class="kicker">The board's question</div>
+  <h2>"Can you reproduce exactly what the board saw in January?"</h2>
   <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
+    <ul class="bullets small">
+      <li>Since then, producers corrected 2% of December discharge dates.</li>
+      <li>Rawdah delivered late December encounters.</li>
+      <li>Today's table gives different December figures.</li>
     </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+    <div class="card c-navy tint"><h4>Without history</h4><p class="small mb0">You rebuild from backups, if any, and hope nothing else changed.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <aside class="notes"><p>Dr. Fadwa Al-Qassabi's question is the reproducibility promise every release makes. Lab 2.3's setup builds the table with four versions from the lake.</p></aside>
 </section>
 
-<section class="slide" id="s3-steps" data-lo="LO2">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="table-formats" data-label="Table formats" data-lo="LO2">
+  <div class="kicker">Open table formats</div>
+  <h2>A table format adds a log of commits to files: every commit is a version</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>Delta Lake</h4><p class="small mb0">A JSON log beside the Parquet files. Used in the labs through delta-rs: no Java needed.</p></div>
+    <div class="card c-cyan"><h4>Apache Iceberg</h4><p class="small mb0">Snapshots with metadata files; time travel by snapshot id.</p></div>
+    <div class="card c-purple"><h4>DuckLake</h4><p class="small mb0">The catalog in a SQL database; snapshots and time travel.</p></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <p class="small mt">Same ideas in all three: atomic commits, versions, time travel, schema evolution.</p>
+  <aside class="notes"><p>Interchangeable examples of the slot. Facts from each project's own site this month: DuckLake keeps its metadata in a SQL database (PostgreSQL, MySQL, SQLite or DuckDB) and supports snapshots and time travel; Iceberg queries with FOR VERSION AS OF a snapshot id. Check versions before the cohort.</p></aside>
+</section>
+
+<section class="slide" id="history-log" data-label="History" data-lo="LO2">
+  <div class="kicker">Lab 2.3 · step 1</div>
+  <h2>Four commits, four versions of December</h2>
+  <table class="t small">
+    <tr><th class="num">Version</th><th>Operation</th><th>What happened</th></tr>
+    <tr><td class="num">0</td><td>WRITE</td><td>October and November loaded</td></tr>
+    <tr class="hl"><td class="num">1</td><td>WRITE (append)</td><td>December arrives; the board's figures are built here</td></tr>
+    <tr><td class="num">2</td><td>MERGE</td><td>2% of December discharges corrected</td></tr>
+    <tr><td class="num">3</td><td>WRITE (append)</td><td>Rawdah's late December encounters</td></tr>
+  </table>
+  <aside class="notes"><p>Printed from DeltaTable.history() in the lab. Ask: if the analysis had not recorded "version 1", how would you find it? By timestamps, if you trust them, and only if nothing was vacuumed.</p></aside>
+</section>
+
+<section class="slide" id="record-version" data-label="Record it" data-lo="LO2">
+  <div class="kicker">Lab 2.3 · step 2</div>
+  <h2>Record the version with the analysis, and the fingerprint of what it produced</h2>
+  <pre class="code s" data-file="analysis run record"><code class="language-json">{"analysis": "december_discharges", "table": "curated/encounters",
+ "version": 1, "rows": 15, "fingerprint": "2b4a6dfab81fa30c"}</code></pre>
+  <p class="small mt-s">Two fields make the figures reproducible: the version read and the fingerprint written.</p>
+  <aside class="notes"><p>The fingerprint is from the course's full-size run; quick mode gives another one. The capstone README reports the table versions behind every number it states.</p></aside>
+</section>
+
+<section class="slide" id="rebuild-identical" data-label="Rebuilt" data-lo="LO2">
+  <div class="kicker">Lab 2.3 · steps 3 and 4</div>
+  <h2>Read version 1, rebuild, compare: identical; today: every cell moved</h2>
+  <div class="cols cols-2">
+    <pre class="code s" data-file="Lab 2.3"><code class="language-python">then = analysis_set(pl.read_delta(TABLE, version=1))
+U.fingerprint(then) == RUN["fingerprint"]   # True</code></pre>
+    <div class="stat center"><div class="big">15 of 15</div><div class="lbl">producer and ward cells differ between version 1 and today (full size)</div></div>
+  </div>
+  <aside class="notes"><p>In quick mode 10 of 15 cells change; at full size all 15, because 2% of 100,000 December encounters touches every cell. Rawdah's cells change in discharges as well as days: only Rawdah sent late rows.</p></aside>
+</section>
+
+<section class="slide" id="vacuum" data-label="Vacuum" data-lo="LO2">
+  <div class="kicker">Lab 2.3 · step 5</div>
+  <h2>Vacuum deletes the files old versions need</h2>
+  <div class="cols cols-2">
+    <div class="trace s">
+      <div class="ev call"><b>vacuum</b><span>retention 0 hours on a copy</span></div>
+      <div class="ev error"><b>read v1</b><span><code>FileNotFoundError</code></span></div>
+    </div>
+    <ul class="bullets small">
+      <li>Delta's default retention is seven days.</li>
+      <li>Set it to the reproducibility promise, or snapshot each release with its fingerprint.</li>
+      <li>The board and the data owner decide the promise, not the platform alone.</li>
+    </ul>
+  </div>
+  <aside class="notes"><p>Run on a copy in the lab, never on the shared table. The retention is also a privacy question: old versions keep corrected or deleted personal data alive. Destroying data on request under the PDPL means old versions too.</p></aside>
+</section>
+
+<section class="slide" id="check-history" data-label="Checkpoint" data-lo="LO2">
+  <div class="kicker">Checkpoint</div>
+  <h2>Reproduce a release</h2>
+  <div class="quiz" data-type="single" data-lo="LO2">
+    <p class="lead">A release from last March must be reproduced. The run log names the table but not the version, and the table is vacuumed weekly with seven days' retention. What is true?</p>
+    <div class="opts">
+      <div class="opt" data-why="Assumes time travel works without the files the old version needs">Read the table as of last March's timestamp</div>
+      <div class="opt" data-ok>It cannot be rebuilt exactly from the table; only a kept snapshot of the release would prove it</div>
+      <div class="opt" data-why="Today's data includes every correction since March">Rebuild from today's table: corrections only improve it</div>
+      <div class="opt" data-why="Restoring needs the same files that vacuum removed">Restore the table to March and rerun</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Time travel needs both the log entry and the data files; vacuum removed the files. Record versions and keep release snapshots.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. The capstone asks participants to commit the fingerprints of what they release for exactly this reason.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-2-3" data-auto="lab" data-lab="2.3">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: read_delta without version (reads today's table); comparing analysis sets with == on DataFrames (use the fingerprint); running vacuum on the lab's table instead of the copy (rerun the setup cell, it rebuilds the table).</p></aside>
 </section>
 
-<!-- Session 4 -->
-
+<!-- ======================= SESSION 4 ======================= -->
 <section class="slide section" id="s4" data-auto="section" data-session="4"></section>
 
-<section class="slide" id="s4-idea" data-lo="LO2">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="dip" data-label="The dip" data-lo="LO2">
+  <div class="kicker">Yesterday's figure</div>
+  <h2>Median creatinine fell by a quarter in September, and nobody knows why</h2>
+  <div class="bars">
+    <div class="row"><span>2025-08</span><div class="bar c-teal" style="--w:99%"></div><span class="val">89.8</span></div>
+    <div class="row"><span>2025-09</span><div class="bar c-coral" style="--w:74%"></div><span class="val">66.5</span></div>
+    <div class="row"><span>2025-10</span><div class="bar c-teal" style="--w:100%"></div><span class="val">90.1</span></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <p class="caption">Median creatinine, µmol/L, all producers, from yesterday's run without gates (full lake).</p>
+  <aside class="notes"><p>Ask for hypotheses before showing anything else: a season, a new lab analyser, a coding change, a producer. Write them on the board; session 4 tests them with lineage.</p></aside>
 </section>
 
-<section class="slide" id="s4-steps" data-lo="LO2">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="gate-per-partition" data-label="Per partition" data-lo="LO2">
+  <div class="kicker">Lab 2.4 · step 1</div>
+  <h2>Gate each partition, so one bad delivery stops alone</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>The contract's ranges, per test: creatinine 20 to 1,500 µmol/L, glucose 1 to 60 mmol/L.</li>
+      <li>A partition fails if more than 0.5% of its results fall outside.</li>
+      <li>One lazy query gates all 36 partitions.</li>
+    </ul>
+    <table class="t small">
+      <tr><th>Partition</th><th class="num">Rows</th><th class="num">Invalid</th></tr>
+      <tr class="hl"><td>RWD, 2025-09</td><td class="num">600,012</td><td class="num">100,002 (16.7%)</td></tr>
+      <tr><td>other 35</td><td class="num"></td><td class="num">0</td></tr>
+    </table>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Full-size numbers. 16.7% is exactly one test of six: every creatinine result in the partition is out of range. A whole-load gate would have stopped all three producers' data for the month; a gate per partition publishes 35 and quarantines one.</p></aside>
+</section>
+
+<section class="slide" id="quarantine" data-label="Quarantine" data-lo="LO2">
+  <div class="kicker">Lab 2.4 · step 2</div>
+  <h2>Publish what passed, quarantine what failed, and say what is missing</h2>
+  <div class="flow">
+    <div class="step c-teal"><b>35 partitions</b>published</div>
+    <div class="arrow">→</div>
+    <div class="step c-coral"><b>RWD 2025-09</b>quarantined until Rawdah re-sends</div>
+    <div class="arrow">→</div>
+    <div class="step c-purple"><b>September figure</b>90.2, from 2 producers, flagged</div>
+  </div>
+  <aside class="notes"><p>The rebuilt figure for September is 90.2 from Sidra and Ufuq only. A figure that silently drops a producer is the same bias as Ufuq's stale delivery on Day 1: publish the count of producers with the figure.</p></aside>
+</section>
+
+<section class="slide" id="openlineage" data-label="OpenLineage" data-lo="LO2">
+  <div class="kicker">Lab 2.4 · step 3</div>
+  <h2>A lineage event says which run read what and wrote what</h2>
+  <pre class="code s" data-file="artifacts/D2_4/today.jsonl"><code class="language-json">{"eventType": "FAIL",
+ "job": {"namespace": "rimah", "name": "rimah.labs_gate"},
+ "run": {"runId": "dba00c8e-...", "facets": {"gate": {"invalid": 100002, "rows": 600012}}},
+ "inputs":  [{"name": "raw/labs/producer=RWD/month=2025-09"}],
+ "outputs": [{"name": "quarantine/labs/producer=RWD/month=2025-09"}]}</code></pre>
+  <aside class="notes"><p>OpenLineage's object model: run events (START, then COMPLETE or FAIL) naming a job, a run and its input and output datasets, with facets for anything else. Marquez is the reference backend that stitches events into a graph; most orchestrators emit them too. The lab writes events to a file: no server needed. Source: the OpenLineage object model page.</p></aside>
+</section>
+
+<section class="slide" id="trace-back" data-label="Trace back" data-lo="LO2">
+  <div class="kicker">Lab 2.4 · step 4</div>
+  <h2>Walk the events backwards from the figure to the partition</h2>
+  <div class="trace s">
+    <div class="ev user"><b>start</b><span><code>analysis/monthly_creatinine</code></span></div>
+    <div class="ev call"><b>written by</b><span><code>rimah.monthly_creatinine</code>: 36 curated partitions</span></div>
+    <div class="ev call"><b>written by</b><span><code>rimah.labs_publish</code>: 36 raw partitions; September: 3</span></div>
+    <div class="ev result"><b>medians</b><span>SDR 89.97 · UFQ 90.51 · <b>RWD 1.02</b></span></div>
+    <div class="ev final"><b>traced</b><span>Rawdah, September: creatinine in mg/dL under a µmol/L label</span></div>
+  </div>
+  <aside class="notes"><p>The upstream walk finds 72 datasets in yesterday's events; filtering by month leaves three raw partitions; their medians name the producer. The same unit flip as Day 1, now inside a partition. Ihab, Kinan and Ashjan each get a different message: only Ashjan's says "re-send September".</p></aside>
+</section>
+
+<section class="slide" id="check-gates" data-label="Checkpoint" data-lo="LO2">
+  <div class="kicker">Checkpoint</div>
+  <h2>One partition fails</h2>
+  <div class="quiz" data-type="single" data-lo="LO2">
+    <p class="lead">Rawdah's September laboratory partition fails its gate. The study's monthly report is due today. What does the pipeline do?</p>
+    <div class="opts">
+      <div class="opt" data-why="Stops good data from two producers and eleven months because of one partition">Stop the whole load until Rawdah re-sends</div>
+      <div class="opt" data-why="Publishes known bad values into the study">Publish it with a warning in the log</div>
+      <div class="opt" data-ok>Publish the 35 partitions that passed, quarantine Rawdah's September, and flag September as two producers</div>
+      <div class="opt" data-why="Repairs a producer's data downstream without the producer confirming the cause">Divide the partition's values by 88.42 and publish</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Gating per partition keeps a bad delivery from blocking good ones, and the flag keeps the figure honest about what it contains.</div>
+  </div>
+  <aside class="notes"><p>Answer: C. D is tempting because the cause is obvious here: but it must be confirmed by Rawdah, and the fix belongs in a re-sent partition, not a silent patch.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-2-4" data-auto="lab" data-lab="2.4">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Walk the room. Usual problems: gating the whole table instead of grouping by producer and month; integer ranges that break the join (the lab casts them to float); following events forwards instead of backwards. The stretch's distribution gate catches a change of scale that stays inside the range.</p></aside>
 </section>
 
-<section class="slide" id="wrap-up">
+<!-- ======================= CLOSING ======================= -->
+<section class="slide" id="wrap-up" data-label="Recap">
   <div class="kicker">Day 2 · wrap-up</div>
   <h2>Three things to keep</h2>
   <div class="cols cols-3">
-    <div class="card c-teal"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-coral"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-purple"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
+    <div class="card c-teal"><h4>Read less</h4><p class="small mb0">Partitions, columns and lazy plans: 2.7 GB became 112 MB for the same answer.</p></div>
+    <div class="card c-coral"><h4>Load twice, same table</h4><p class="small mb0">Merge on the business key; prove it with a fingerprint.</p></div>
+    <div class="card c-purple"><h4>Versions and gates</h4><p class="small mb0">Record the version you read; gate per partition; emit lineage so a figure can be traced.</p></div>
   </div>
+  <aside class="notes"><p>Ask each table which of today's three their current pipeline lacks. The capstone's "contracts and pipeline" criterion checks all three.</p></aside>
 </section>
 
 <section class="slide dark" id="next" data-label="Next">
   <div class="kicker">Next</div>
   <h2>Day 3: Synthesise and attack</h2>
-  <p class="lead">REPLACE: what participants prepare before then; unfinished labs can be finished at home</p>
-  <aside class="notes">REPLACE: accounts, installs or reading participants need before the next unit</aside>
+  <p class="lead">The university wants a copy. Tomorrow you generate synthetic patients and encounters, measure whether the readmission model still works on them, and attack them to see what leaks.</p>
+  <aside class="notes"><p>Day 3 uses the study tables in labs/data/study, committed with the course: no lake needed. Delete labs/artifacts if disks are full; the Day 2 lake can be deleted too (rimah_lake.py writes it again).</p></aside>
 </section>
