@@ -1,0 +1,457 @@
+{
+  "$schema": "https://sdaiaacademy.github.io/engine/schemas/course.schema.json",
+  "engine": "1",
+  "id": "ds-405",
+  "code": "DS-405",
+  "version": "2027.1.0",
+  "lang": "en",
+  "title": {
+    "en": "Data Preparation at Scale: Contracts, Synthetic Data and Privacy",
+    "ar": "إعداد البيانات على نطاق واسع: عقود البيانات والبيانات الاصطناعية والخصوصية"
+  },
+  "tagline": "REPLACE: one line under the title: what participants can do after the course",
+  "description": "Participants run data preparation for the fictional Rimah Health Data Consortium: three hospital groups send encounter, laboratory and pharmacy extracts (about 30 million synthetic rows) for a readmission study, and a university partner wants a copy. They contract and link the producers, rebuild preparation as an incremental pipeline over partitioned columnar tables, generate and attack synthetic versions, compare privacy-enhancing methods for four requests, and write a release decision a privacy officer could sign. Single-table contracts come from DS-311; de-identification and basic differential privacy from DS-309.",
+  "track": "data-science",
+  "level": 400,
+  "badge": {
+    "name": "Data Science",
+    "level": "Expert"
+  },
+  "audience": "Specialists. Data scientists who have completed the level 300 core and practicum, or can show equivalent work: an analysis they led from question to recommendation and defended.",
+  "prerequisites": [
+    "DS-309 Responsible Data Science: Privacy, Fairness and Documentation",
+    "Writes SQL with window functions and cleans data with a data-frame library",
+    "Has written a data contract and blocking quality rules for one table (DS-311 or equivalent)"
+  ],
+  "site": {
+    "url": "https://sdaiaacademy.github.io/ds-405/",
+    "repo": "SDAIAAcademy/ds-405"
+  },
+  "outcomes": [
+    {
+      "id": "LO1",
+      "text": "Design shared data contracts, a pseudonymous linkage key and a breaking-change policy for a feed with several producers, given three producers whose extracts disagree on schema, codes and units",
+      "level": "Performance",
+      "evidence": "contracts checked against all three producers, a linkage match rate measured against the planted truth, and a one-page policy"
+    },
+    {
+      "id": "LO2",
+      "text": "Implement an incremental, idempotent preparation pipeline over partitioned columnar tables with quality gates, given 30 million synthetic rows on a laptop",
+      "level": "Applied",
+      "evidence": "identical output when a day is re-run, with time and memory measured"
+    },
+    {
+      "id": "LO3",
+      "text": "Evaluate a synthetic dataset for fidelity, analytical utility and disclosure risk, given two generators fitted to related patient and encounter tables",
+      "level": "Performance",
+      "evidence": "a report with train-on-synthetic, test-on-real scores and attack results"
+    },
+    {
+      "id": "LO4",
+      "text": "Compute differentially private statistics under a budget shared across repeated releases, given twelve monthly statistics",
+      "level": "Applied",
+      "evidence": "a budget ledger and a plot of error against budget"
+    },
+    {
+      "id": "LO5",
+      "text": "Select a privacy-enhancing method for each data request by comparing protection, utility and cost, given four requests, from an internal analyst to an external university",
+      "level": "Performance",
+      "evidence": "a decision table stating the residual risk of each option"
+    },
+    {
+      "id": "LO6",
+      "text": "Decide whether to release a dataset and on what conditions, and defend the decision, given the university request and the measured results",
+      "level": "Performance",
+      "evidence": "a release decision record defended live"
+    }
+  ],
+  "case_study": {
+    "name": "REPLACE: the name of the fictional organisation every lab works on",
+    "summary": "REPLACE: two sentences on the case study and its synthetic data"
+  },
+  "format": "intensive",
+  "format_note": "Intensive: 4 teaching days of four sessions and a capstone day, with guided pre-work and a tracked follow-up task",
+  "hours": {
+    "instruction": 6,
+    "lab": 7,
+    "guided_self_study": 6,
+    "assessment": 1,
+    "capstone": 6
+  },
+  "unit": "day",
+  "days": [
+    {
+      "id": "day1",
+      "kind": "day",
+      "title": "Contract the producers",
+      "deck": "slides/day1.html",
+      "sessions": [
+        {
+          "title": "Preparation breaks where producers disagree",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO1"
+          ],
+          "lab": {
+            "id": "1.1",
+            "title": "Profile three producers' encounter extracts and list where schema, codes and units disagree",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D1_1_profile_three_producers.ipynb"
+          }
+        },
+        {
+          "title": "One contract, three producers",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO1"
+          ],
+          "lab": {
+            "id": "1.2",
+            "title": "Write a shared contract in an open standard with code mappings, unit rules and freshness, and run it against all three extracts",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D1_2_write_shared_contract.ipynb"
+          }
+        },
+        {
+          "title": "Linking patients across producers",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO1"
+          ],
+          "lab": {
+            "id": "1.3",
+            "title": "Generate a keyed-hash linkage identifier at each producer and measure the match rate against the planted truth",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D1_3_generate_keyed_hash.ipynb"
+          }
+        },
+        {
+          "title": "Versions and breaking changes",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO1"
+          ],
+          "lab": {
+            "id": "1.4",
+            "title": "Draft the policy (what counts as breaking, notice periods, who approves) and test it on a seeded producer change",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D1_4_draft_policy_what.ipynb"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day2",
+      "kind": "day",
+      "title": "Prepare at scale",
+      "deck": "slides/day2.html",
+      "sessions": [
+        {
+          "title": "Columnar files and lazy execution",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO2"
+          ],
+          "lab": {
+            "id": "2.1",
+            "title": "Rewrite an eager cleaning script as a lazy query over partitioned files and compare time and memory",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D2_1_rewrite_eager_cleaning.ipynb"
+          }
+        },
+        {
+          "title": "Incremental and idempotent loads",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO2"
+          ],
+          "lab": {
+            "id": "2.2",
+            "title": "Make the daily load idempotent and prove it by loading one day twice",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D2_2_make_daily_load.ipynb"
+          }
+        },
+        {
+          "title": "Tables with history",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO2"
+          ],
+          "lab": {
+            "id": "2.3",
+            "title": "Rebuild last month's analysis set from a table snapshot",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D2_3_rebuild_last_month.ipynb"
+          }
+        },
+        {
+          "title": "Gates and lineage at scale",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO2"
+          ],
+          "lab": {
+            "id": "2.4",
+            "title": "Run blocking rules per partition and trace a seeded defect to its producer and partition through lineage events",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D2_4_run_blocking_rules.ipynb"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day3",
+      "kind": "day",
+      "title": "Synthesise and attack",
+      "deck": "slides/day3.html",
+      "sessions": [
+        {
+          "title": "When synthetic data fits",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO5"
+          ],
+          "lab": {
+            "id": "3.1",
+            "title": "Decide for four requests between synthetic data, a de-identified extract and a query service",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D3_1_decide_four_requests.ipynb"
+          }
+        },
+        {
+          "title": "Generating related tables",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO3"
+          ],
+          "lab": {
+            "id": "3.2",
+            "title": "Fit two generators to the patient and encounter tables, keeping the parent-child relation",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D3_2_fit_two_generators.ipynb"
+          }
+        },
+        {
+          "title": "Utility is measured against the analysis",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO3"
+          ],
+          "lab": {
+            "id": "3.3",
+            "title": "Train the readmission model on synthetic data, test on real data and compare",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D3_3_train_readmission_model.ipynb"
+          }
+        },
+        {
+          "title": "Privacy is measured by attack",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO3"
+          ],
+          "lab": {
+            "id": "3.4",
+            "title": "Run distance-to-closest-record and membership-inference tests on each synthetic table",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D3_4_run_distance_closest.ipynb"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day4",
+      "kind": "day",
+      "title": "Protect and decide",
+      "deck": "slides/day4.html",
+      "sessions": [
+        {
+          "title": "Disclosure risk in longitudinal records",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO3"
+          ],
+          "lab": {
+            "id": "4.1",
+            "title": "Measure re-identification risk when encounter sequences act as quasi-identifiers and compare it with the single-table estimate",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D4_1_measure_re_identification.ipynb"
+          }
+        },
+        {
+          "title": "Privacy budgets over many releases",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO4"
+          ],
+          "lab": {
+            "id": "4.2",
+            "title": "Allocate a budget across twelve monthly statistics and plot error against budget",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D4_2_allocate_budget_across.ipynb"
+          }
+        },
+        {
+          "title": "Analysis without pooling records",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO5"
+          ],
+          "lab": {
+            "id": "4.3",
+            "title": "Compute a cross-site readmission rate with a simulated secure-aggregation protocol",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D4_3_compute_cross_site.ipynb"
+          }
+        },
+        {
+          "title": "The release decision",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO6"
+          ],
+          "lab": {
+            "id": "4.4",
+            "title": "Draft the decision for the university request: method, residual risk, conditions, approver",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D4_4_draft_decision_university.ipynb"
+          }
+        }
+      ]
+    },
+    {
+      "id": "capstone",
+      "kind": "capstone",
+      "title": "Capstone project presentations",
+      "deck": "slides/capstone.html",
+      "subtitle": "REPLACE: the catalog gives 10 minutes for each presentation and nothing about questions; decide whether the questions are inside those minutes, set capstone.talk_minutes and capstone.qa_minutes in course.json and the timers of the now-presenting slide, and remove this line"
+    }
+  ],
+  "capstone": {
+    "summary": "A release package for one of three data requests (contracts, pipeline, protected or synthetic dataset with utility and attack report, release decision) in a public repository whose README reports measured results, defended in ten minutes",
+    "submission": "REPLACE: what participants submit and how: a public repository link, or a shared folder for a course without code",
+    "talk_minutes": 10,
+    "rubric": [
+      {
+        "criterion": "Contracts and pipeline",
+        "weight": 25
+      },
+      {
+        "criterion": "Synthetic data validation",
+        "weight": 25
+      },
+      {
+        "criterion": "Privacy method and risk",
+        "weight": 25
+      },
+      {
+        "criterion": "Release decision",
+        "weight": 15
+      },
+      {
+        "criterion": "Reproducibility",
+        "weight": 10
+      }
+    ]
+  },
+  "labs": {
+    "kind": "notebooks",
+    "base": "labs/"
+  },
+  "tools": [
+    {
+      "slot": "Larger-than-memory processing",
+      "examples": [
+        "Polars",
+        "DuckDB"
+      ]
+    },
+    {
+      "slot": "Open table format",
+      "examples": [
+        "Apache Iceberg",
+        "Delta Lake",
+        "DuckLake"
+      ]
+    },
+    {
+      "slot": "Data contracts and validation",
+      "examples": [
+        "Open Data Contract Standard (ODCS)",
+        "Pandera",
+        "Soda Core"
+      ]
+    },
+    {
+      "slot": "Lineage events",
+      "examples": [
+        "OpenLineage with Marquez",
+        "the orchestrator's built-in lineage"
+      ]
+    },
+    {
+      "slot": "Synthetic relational data",
+      "examples": [
+        "synthcity",
+        "Synthetic Data Vault"
+      ]
+    },
+    {
+      "slot": "Disclosure risk and differential privacy",
+      "examples": [
+        "ARX",
+        "sdcMicro",
+        "OpenDP"
+      ]
+    }
+  ]
+}
