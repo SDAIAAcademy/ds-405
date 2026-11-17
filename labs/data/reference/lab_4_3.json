@@ -1,0 +1,21 @@
+{
+ "pooled": {
+  "rate": 0.1526,
+  "readmitted": 2023,
+  "stays": 13258
+ },
+ "site_counts": {
+  "RWD": {
+   "readmitted": 654,
+   "stays": 4051
+  },
+  "SDR": {
+   "readmitted": 688,
+   "stays": 4683
+  },
+  "UFQ": {
+   "readmitted": 681,
+   "stays": 4524
+  }
+ }
+}

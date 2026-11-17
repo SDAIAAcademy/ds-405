@@ -1,0 +1,18 @@
+{
+ "by_known": {
+  "demo_1": 0.401,
+  "demo_2": 0.966,
+  "demo_3": 1.0,
+  "stays_1": 0.0,
+  "stays_2": 0.124,
+  "stays_3": 0.905
+ },
+ "coarse": {
+  "demo_1": 0.002,
+  "demo_2": 0.206,
+  "demo_3": 0.78,
+  "stays_dropped": 0.24,
+  "truncated_demo_2": 0.472
+ },
+ "single": 0.042
+}

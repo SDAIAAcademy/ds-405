@@ -1,0 +1,108 @@
+{
+ "changes": [
+  {
+   "column": "Nationality",
+   "detail": "0 nulls in 600 rows",
+   "kind": "new_optional_column"
+  },
+  {
+   "column": "DischargeStatus",
+   "detail": "new values ['5']",
+   "kind": "new_code_in_closed_set"
+  },
+  {
+   "column": "DOB",
+   "detail": "600 of 600 values no longer parse as dd/mm/yyyy",
+   "kind": "format_change"
+  },
+  {
+   "column": "Creatinine_mgdl -> Creatinine",
+   "detail": "median 1.00 -> 89.3",
+   "kind": "renamed_column"
+  },
+  {
+   "column": "Creatinine",
+   "detail": "creatinine mg/dL to µmol/L (ratio 89.3)",
+   "kind": "unit_change"
+  }
+ ],
+ "decision": {
+  "approvers": [
+   "consortium data board (chair: Dr. Fadwa Al-Qassabi)",
+   "consumer owner: readmission study",
+   "data protection officer if a personal-data field changes"
+  ],
+  "breaking_changes": [
+   "new_code_in_closed_set: DischargeStatus",
+   "format_change: DOB",
+   "renamed_column: Creatinine_mgdl -> Creatinine",
+   "unit_change: Creatinine"
+  ],
+  "class": "breaking",
+  "current": "1.0.0",
+  "next_version": "2.0.0",
+  "notice_days": 60
+ },
+ "diff_changes": [
+  {
+   "column": "Creatinine_mgdl",
+   "detail": "absent in the new extract",
+   "kind": "removed_column"
+  },
+  {
+   "column": "Nationality",
+   "detail": "0 nulls in 600 rows",
+   "kind": "new_optional_column"
+  },
+  {
+   "column": "Creatinine",
+   "detail": "0 nulls in 600 rows",
+   "kind": "new_optional_column"
+  },
+  {
+   "column": "DischargeStatus",
+   "detail": "new values ['5']",
+   "kind": "new_code_in_closed_set"
+  },
+  {
+   "column": "DOB",
+   "detail": "600 of 600 values no longer parse as dd/mm/yyyy",
+   "kind": "format_change"
+  }
+ ],
+ "policy": {
+  "additive": [
+   "new_optional_column",
+   "new_code_in_open_set",
+   "looser_rule"
+  ],
+  "approvers": {
+   "additive": [
+    "contract owner"
+   ],
+   "breaking": [
+    "consortium data board (chair: Dr. Fadwa Al-Qassabi)",
+    "consumer owner: readmission study",
+    "data protection officer if a personal-data field changes"
+   ]
+  },
+  "breaking": [
+   "removed_column",
+   "renamed_column",
+   "type_change",
+   "unit_change",
+   "format_change",
+   "new_code_in_closed_set",
+   "meaning_change"
+  ],
+  "notice_days": {
+   "additive": 14,
+   "breaking": 60
+  },
+  "parallel_run_days": 30,
+  "version_bump": {
+   "additive": "minor",
+   "breaking": "major"
+  }
+ }
+}

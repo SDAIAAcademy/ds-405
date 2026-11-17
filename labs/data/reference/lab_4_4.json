@@ -1,0 +1,133 @@
+{
+ "checklist": [
+  {
+   "evidence": "research on readmission serves the public interest; 'may later be offered to hospitals' must not become profit-oriented use",
+   "rule": "Sharing principle: Legitimate Purpose",
+   "status": "condition"
+  },
+  {
+   "evidence": "copied to a shared drive open to students: no named users or access control",
+   "rule": "Sharing principle: Authorized Access",
+   "status": "not met"
+  },
+  {
+   "evidence": "a shared drive is not an approved secure environment",
+   "rule": "Sharing principle: Data Security",
+   "status": "not met"
+  },
+  {
+   "evidence": "the purpose is stated; the consortium must record what is shared, with whom and why",
+   "rule": "Sharing principle: Transparency",
+   "status": "condition"
+  },
+  {
+   "evidence": "sent to the consortium, which holds the study tables",
+   "rule": "Secondary use: request through the data source entity",
+   "status": "met"
+  },
+  {
+   "evidence": "all columns at record level requested; a readmission model needs eleven features",
+   "rule": "Secondary use: minimum necessary data",
+   "status": "not met"
+  },
+  {
+   "evidence": "sent by the applicant personally; institutional approval not attached",
+   "rule": "Secondary use: academic applicant applies through the institution, with written approval",
+   "status": "not met"
+  },
+  {
+   "evidence": "free-text email instead of the form",
+   "rule": "Secondary use: complete Data-Sharing Request Form",
+   "status": "not met"
+  },
+  {
+   "evidence": "the university and the consortium must both sign the agreement and its obligations",
+   "rule": "Sharing principle: Collective Accountability",
+   "status": "condition"
+  },
+  {
+   "evidence": "ethics committee approval must be attached before any data moves",
+   "rule": "Sharing principle: Ethical Data Use",
+   "status": "condition"
+  }
+ ],
+ "record": {
+  "approver": "Dr. Fadwa Al-Qassabi, director, chair of the release board",
+  "checklist": [
+   {
+    "evidence": "research on readmission serves the public interest; 'may later be offered to hospitals' must not become profit-oriented use",
+    "rule": "Sharing principle: Legitimate Purpose",
+    "status": "condition"
+   },
+   {
+    "evidence": "copied to a shared drive open to students: no named users or access control",
+    "rule": "Sharing principle: Authorized Access",
+    "status": "not met"
+   },
+   {
+    "evidence": "a shared drive is not an approved secure environment",
+    "rule": "Sharing principle: Data Security",
+    "status": "not met"
+   },
+   {
+    "evidence": "the purpose is stated; the consortium must record what is shared, with whom and why",
+    "rule": "Sharing principle: Transparency",
+    "status": "condition"
+   },
+   {
+    "evidence": "sent to the consortium, which holds the study tables",
+    "rule": "Secondary use: request through the data source entity",
+    "status": "met"
+   },
+   {
+    "evidence": "all columns at record level requested; a readmission model needs eleven features",
+    "rule": "Secondary use: minimum necessary data",
+    "status": "not met"
+   },
+   {
+    "evidence": "sent by the applicant personally; institutional approval not attached",
+    "rule": "Secondary use: academic applicant applies through the institution, with written approval",
+    "status": "not met"
+   },
+   {
+    "evidence": "free-text email instead of the form",
+    "rule": "Secondary use: complete Data-Sharing Request Form",
+    "status": "not met"
+   },
+   {
+    "evidence": "the university and the consortium must both sign the agreement and its obligations",
+    "rule": "Sharing principle: Collective Accountability",
+    "status": "condition"
+   },
+   {
+    "evidence": "ethics committee approval must be attached before any data moves",
+    "rule": "Sharing principle: Ethical Data Use",
+    "status": "condition"
+   }
+  ],
+  "classification": "source tables Restricted; the synthetic pair handled as Restricted under the agreement (board's assessment)",
+  "conditions": [
+   "1. the request is resubmitted by the university on the Data-Sharing Request Form",
+   "2. written approval of the university's academic authority and its ethics committee is attached",
+   "3. a data-sharing agreement names the users, the purpose (no commercial use without a new request) and the 24-month term",
+   "4. only the synthetic pair of the eleven model features leaves the consortium; no real record is copied",
+   "5. no onward sharing; the file is deleted at the end of the term and deletion is confirmed in writing",
+   "6. any publication reports results from the consortium's run on real data, not from the synthetic file"
+  ],
+  "consulted": [
+   "Ghanem Al-Mutawakkil, data protection officer"
+  ],
+  "decision": "conditional approval: nothing is released until conditions 1 to 3 are met",
+  "evidence_files": [
+   "artifacts/D3_3/utility.csv",
+   "artifacts/D3_4/attacks.csv",
+   "artifacts/D4_1/risk.csv"
+  ],
+  "method": "a synthetic pair (conditional trees, leaf 25) of the eleven model features for model development; final fitting and validation run by the consortium on the real data from code the group submits",
+  "request": "REQ-2026-031",
+  "residual_risk": "membership AUC 0.55 (patients) and 0.511 (encounters), under the board's 0.60; the synthetic file is still derived from personal data and is shared under agreement, not published",
+  "review_date": "at resubmission, and before any extension of the term",
+  "utility_evidence": "TSTR AUC 0.705 against 0.706 on real data; heart-failure risk ratio 1.91 inside the real interval 1.84-2.33",
+  "why_not_extract": "record-level stays: 97% of patients with two stays are unique on sex, year of birth and those two stays"
+ }
+}

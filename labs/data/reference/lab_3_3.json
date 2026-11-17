@@ -1,0 +1,44 @@
+{
+ "estimates": {
+  "independent": {
+   "hi": 1.41,
+   "lo": 0.96,
+   "rr": 1.16
+  },
+  "real": {
+   "hi": 2.33,
+   "lo": 1.84,
+   "rr": 2.07
+  },
+  "trees": {
+   "hi": 2.17,
+   "lo": 1.68,
+   "rr": 1.91
+  },
+  "vendor": {
+   "hi": 2.33,
+   "lo": 1.84,
+   "rr": 2.07
+  }
+ },
+ "fidelity": {
+  "independent": {
+   "marginal": 0.015,
+   "pairwise": 0.064
+  },
+  "trees": {
+   "marginal": 0.01,
+   "pairwise": 0.013
+  },
+  "vendor": {
+   "marginal": 0.0,
+   "pairwise": 0.0
+  }
+ },
+ "tstr": {
+  "independent": 0.665,
+  "real (TRTR)": 0.706,
+  "trees": 0.705,
+  "vendor": 0.706
+ }
+}

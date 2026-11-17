@@ -1,0 +1,30 @@
+{
+ "dcr": {
+  "independent": {
+   "encounters": 0.501,
+   "patients": 0.488
+  },
+  "trees": {
+   "encounters": 0.504,
+   "patients": 0.522
+  },
+  "vendor": {
+   "encounters": 0.721,
+   "patients": 0.693
+  }
+ },
+ "mia": {
+  "independent": {
+   "encounters": 0.511,
+   "patients": 0.516
+  },
+  "trees": {
+   "encounters": 0.511,
+   "patients": 0.55
+  },
+  "vendor": {
+   "encounters": 1.0,
+   "patients": 0.897
+  }
+ }
+}

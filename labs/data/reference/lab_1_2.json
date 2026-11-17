@@ -1,0 +1,683 @@
+{
+ "clauses": {
+  "RWD": {
+   "codes": {
+    "disposition": {
+     "01": "HOME",
+     "02": "TRANSFER",
+     "03": "DIED",
+     "04": "LAMA"
+    },
+    "sex": {
+     "1": "M",
+     "2": "F"
+    },
+    "ward": {
+     "C": "CARD",
+     "I": "ICU",
+     "M": "MED",
+     "O": "OBS",
+     "S": "SURG"
+    }
+   },
+   "transforms": {
+    "primary_dx": "icd10_dot"
+   },
+   "units": {
+    "weight_kg": 0.453592
+   }
+  },
+  "SDR": {
+   "transforms": {
+    "primary_dx": "icd10_dot"
+   }
+  },
+  "UFQ": {
+   "codes": {
+    "disposition": {
+     "1": "HOME",
+     "2": "TRANSFER",
+     "3": "DIED",
+     "4": "LAMA"
+    },
+    "sex": {
+     "Female": "F",
+     "Male": "M"
+    },
+    "ward": {
+     "CARDIO": "CARD",
+     "GEN-SURG": "SURG",
+     "ICU": "ICU",
+     "INT-MED": "MED",
+     "OBGYN": "OBS"
+    }
+   },
+   "transforms": {
+    "primary_dx": "icd10_dot"
+   },
+   "units": {
+    "creatinine_umol_l": 88.42
+   }
+  }
+ },
+ "per_property": {
+  "creatinine_umol_l": [
+   {
+    "arguments": {
+     "maximum": 1500,
+     "minimum": 20
+    },
+    "description": "minimum and maximum: course extension",
+    "id": "creatinine_plausible",
+    "metric": "invalidValues",
+    "mustBeLessThan": 0.5,
+    "unit": "percent"
+   }
+  ],
+  "disposition": [
+   {
+    "arguments": {
+     "validValues": [
+      "HOME",
+      "TRANSFER",
+      "DIED",
+      "LAMA"
+     ]
+    },
+    "id": "disposition_valid",
+    "metric": "invalidValues",
+    "mustBe": 0
+   }
+  ],
+  "primary_dx": [
+   {
+    "arguments": {
+     "pattern": "^[A-Z][0-9]{2}(\\.[0-9A-Z]{1,4})?$"
+    },
+    "id": "dx_icd10",
+    "metric": "invalidValues",
+    "mustBe": 0
+   }
+  ],
+  "sex": [
+   {
+    "arguments": {
+     "validValues": [
+      "M",
+      "F"
+     ]
+    },
+    "id": "sex_valid",
+    "metric": "invalidValues",
+    "mustBe": 0
+   }
+  ],
+  "ward": [
+   {
+    "arguments": {
+     "validValues": [
+      "MED",
+      "SURG",
+      "CARD",
+      "ICU",
+      "OBS"
+     ]
+    },
+    "id": "ward_valid",
+    "metric": "invalidValues",
+    "mustBe": 0
+   }
+  ],
+  "weight_kg": [
+   {
+    "arguments": {
+     "maximum": 350,
+     "minimum": 1
+    },
+    "description": "minimum and maximum: course extension",
+    "id": "weight_plausible",
+    "metric": "invalidValues",
+    "mustBeLessThan": 0.5,
+    "unit": "percent"
+   }
+  ]
+ },
+ "results": [
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "encounter_id",
+   "rule": "encounter_id_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "patient_local_id",
+   "rule": "patient_local_id_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "birth_date",
+   "rule": "birth_date_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "sex",
+   "rule": "sex_valid",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "sex",
+   "rule": "sex_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "admit_date",
+   "rule": "admit_date_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "discharge_date",
+   "rule": "discharge_date_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "ward",
+   "rule": "ward_valid",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "ward",
+   "rule": "ward_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "primary_dx",
+   "rule": "dx_icd10",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "primary_dx",
+   "rule": "primary_dx_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "disposition",
+   "rule": "disposition_valid",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "disposition",
+   "rule": "disposition_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "weight_kg",
+   "rule": "weight_plausible",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "creatinine_umol_l",
+   "rule": "creatinine_plausible",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "duplicateValues",
+   "passed": true,
+   "producer": "SDR",
+   "property": "encounter",
+   "rule": "encounter_unique",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "sql",
+   "passed": true,
+   "producer": "SDR",
+   "property": "encounter",
+   "rule": "discharge_after_admit",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "rowCount",
+   "passed": true,
+   "producer": "SDR",
+   "property": "encounter",
+   "rule": "not_empty",
+   "severity": "error",
+   "value": 3850.0
+  },
+  {
+   "metric": "sla",
+   "passed": true,
+   "producer": "SDR",
+   "property": "encounter",
+   "rule": "latency",
+   "severity": "error",
+   "value": 2.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "encounter_id",
+   "rule": "encounter_id_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "patient_local_id",
+   "rule": "patient_local_id_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "birth_date",
+   "rule": "birth_date_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "sex",
+   "rule": "sex_valid",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "sex",
+   "rule": "sex_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "admit_date",
+   "rule": "admit_date_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "discharge_date",
+   "rule": "discharge_date_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "ward",
+   "rule": "ward_valid",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "ward",
+   "rule": "ward_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "primary_dx",
+   "rule": "dx_icd10",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "primary_dx",
+   "rule": "primary_dx_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "disposition",
+   "rule": "disposition_valid",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "disposition",
+   "rule": "disposition_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "weight_kg",
+   "rule": "weight_plausible",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "creatinine_umol_l",
+   "rule": "creatinine_plausible",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "duplicateValues",
+   "passed": false,
+   "producer": "UFQ",
+   "property": "encounter",
+   "rule": "encounter_unique",
+   "severity": "error",
+   "value": 37.0
+  },
+  {
+   "metric": "sql",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "encounter",
+   "rule": "discharge_after_admit",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "rowCount",
+   "passed": true,
+   "producer": "UFQ",
+   "property": "encounter",
+   "rule": "not_empty",
+   "severity": "error",
+   "value": 3216.0
+  },
+  {
+   "metric": "sla",
+   "passed": false,
+   "producer": "UFQ",
+   "property": "encounter",
+   "rule": "latency",
+   "severity": "error",
+   "value": 9.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "encounter_id",
+   "rule": "encounter_id_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "patient_local_id",
+   "rule": "patient_local_id_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "birth_date",
+   "rule": "birth_date_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "sex",
+   "rule": "sex_valid",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "sex",
+   "rule": "sex_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "admit_date",
+   "rule": "admit_date_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "discharge_date",
+   "rule": "discharge_date_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "ward",
+   "rule": "ward_valid",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "ward",
+   "rule": "ward_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "primary_dx",
+   "rule": "dx_icd10",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "primary_dx",
+   "rule": "primary_dx_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "disposition",
+   "rule": "disposition_valid",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "nullValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "disposition",
+   "rule": "disposition_required",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "weight_kg",
+   "rule": "weight_plausible",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "invalidValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "creatinine_umol_l",
+   "rule": "creatinine_plausible",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "duplicateValues",
+   "passed": true,
+   "producer": "RWD",
+   "property": "encounter",
+   "rule": "encounter_unique",
+   "severity": "error",
+   "value": 0.0
+  },
+  {
+   "metric": "sql",
+   "passed": false,
+   "producer": "RWD",
+   "property": "encounter",
+   "rule": "discharge_after_admit",
+   "severity": "error",
+   "value": 16.0
+  },
+  {
+   "metric": "rowCount",
+   "passed": true,
+   "producer": "RWD",
+   "property": "encounter",
+   "rule": "not_empty",
+   "severity": "error",
+   "value": 3252.0
+  },
+  {
+   "metric": "sla",
+   "passed": true,
+   "producer": "RWD",
+   "property": "encounter",
+   "rule": "latency",
+   "severity": "error",
+   "value": 1.0
+  }
+ ],
+ "table_rules": [
+  {
+   "arguments": {
+    "properties": [
+     "encounter_id"
+    ]
+   },
+   "id": "encounter_unique",
+   "metric": "duplicateValues",
+   "mustBe": 0
+  },
+  {
+   "id": "discharge_after_admit",
+   "mustBe": 0,
+   "query": "SELECT COUNT(*) FROM {object} WHERE discharge_date < admit_date",
+   "type": "sql"
+  },
+  {
+   "id": "not_empty",
+   "metric": "rowCount",
+   "mustBeGreaterThan": 0
+  }
+ ]
+}

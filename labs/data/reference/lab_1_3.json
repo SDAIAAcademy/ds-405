@@ -1,0 +1,37 @@
+{
+ "match": [
+  {
+   "correct": 225,
+   "linked_pairs": 225,
+   "method": "keyed hash, raw identifier",
+   "precision": 1.0,
+   "recall": 0.1152,
+   "true_pairs": 1953
+  },
+  {
+   "correct": 1939,
+   "linked_pairs": 1939,
+   "method": "keyed hash, normalised",
+   "precision": 1.0,
+   "recall": 0.9928,
+   "true_pairs": 1953
+  },
+  {
+   "correct": 1953,
+   "linked_pairs": 1977,
+   "method": "key A or key B",
+   "precision": 0.9879,
+   "recall": 1.0,
+   "true_pairs": 1953
+  }
+ ],
+ "norm": {
+  "1012 345 678": "1012345678",
+  "101234567": null,
+  "1012345678": "1012345678",
+  "AL HARBI": "alharbi",
+  "Al-Harbi": "alharbi",
+  "SA-1012345678": "1012345678",
+  "١٠١٢٣٤٥٦٧٨": "1012345678"
+ }
+}

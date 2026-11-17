@@ -1,0 +1,284 @@
+{
+ "code_sets": {
+  "disposition": {
+   "RWD": [
+    "01",
+    "02",
+    "03",
+    "04"
+   ],
+   "SDR": [
+    "DIED",
+    "HOME",
+    "LAMA",
+    "TRANSFER"
+   ],
+   "UFQ": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ]
+  },
+  "sex": {
+   "RWD": [
+    "1",
+    "2"
+   ],
+   "SDR": [
+    "F",
+    "M"
+   ],
+   "UFQ": [
+    "Female",
+    "Male"
+   ]
+  },
+  "ward": {
+   "RWD": [
+    "C",
+    "I",
+    "M",
+    "O",
+    "S"
+   ],
+   "SDR": [
+    "CARD",
+    "ICU",
+    "MED",
+    "OBS",
+    "SURG"
+   ],
+   "UFQ": [
+    "CARDIO",
+    "GEN-SURG",
+    "ICU",
+    "INT-MED",
+    "OBGYN"
+   ]
+  }
+ },
+ "column_map": {
+  "RWD": {
+   "admit_date": "adm_dt",
+   "birth_date": "dob",
+   "creatinine": "creat_umol",
+   "discharge_date": "dis_dt",
+   "disposition": "disp",
+   "encounter_id": "enc_id",
+   "patient_local_id": "pt_id",
+   "primary_dx": "icd10",
+   "sex": "sex",
+   "ward": "unit",
+   "weight": "weight_lb"
+  },
+  "SDR": {
+   "admit_date": "admit_date",
+   "birth_date": "birth_date",
+   "creatinine": "creatinine_umol_l",
+   "discharge_date": "discharge_date",
+   "disposition": "disposition",
+   "encounter_id": "encounter_id",
+   "patient_local_id": "patient_id",
+   "primary_dx": "primary_dx",
+   "sex": "sex",
+   "ward": "ward",
+   "weight": "weight_kg"
+  },
+  "UFQ": {
+   "admit_date": "AdmissionDate",
+   "birth_date": "DOB",
+   "creatinine": "Creatinine_mgdl",
+   "discharge_date": "DischargeDate",
+   "disposition": "DischargeStatus",
+   "encounter_id": "EncounterNo",
+   "patient_local_id": "MRN",
+   "primary_dx": "DiagnosisCode",
+   "sex": "Gender",
+   "ward": "Department",
+   "weight": "WeightKg"
+  }
+ },
+ "creatinine": [
+  {
+   "median": 89.9,
+   "p05": 42.6,
+   "p95": 196.7,
+   "producer": "SDR"
+  },
+  {
+   "median": 1.0,
+   "p05": 0.48,
+   "p95": 2.09,
+   "producer": "UFQ"
+  },
+  {
+   "median": 89.7,
+   "p05": 44.1,
+   "p95": 186.3,
+   "producer": "RWD"
+  }
+ ],
+ "dx_shapes": {
+  "RWD": [
+   "A99",
+   "A99.9"
+  ],
+  "SDR": [
+   "A99",
+   "A99.9"
+  ],
+  "UFQ": [
+   "A99",
+   "A999"
+  ]
+ },
+ "register": [
+  {
+   "field": "all",
+   "fix": "map columns in the contract",
+   "kind": "schema",
+   "producer": "UFQ",
+   "seen": "PascalCase names (EncounterNo, MRN, DOB)"
+  },
+  {
+   "field": "all",
+   "fix": "map columns in the contract",
+   "kind": "schema",
+   "producer": "RWD",
+   "seen": "short names (enc_id, adm_dt, dis_dt)"
+  },
+  {
+   "field": "birth_date",
+   "fix": "parse with %d/%m/%Y",
+   "kind": "format",
+   "producer": "UFQ",
+   "seen": "dd/mm/yyyy"
+  },
+  {
+   "field": "birth_date",
+   "fix": "parse with %Y%m%d",
+   "kind": "format",
+   "producer": "RWD",
+   "seen": "yyyymmdd without separators"
+  },
+  {
+   "field": "admit_date",
+   "fix": "parse with %d/%m/%Y",
+   "kind": "format",
+   "producer": "UFQ",
+   "seen": "dd/mm/yyyy"
+  },
+  {
+   "field": "sex",
+   "fix": "map to M / F",
+   "kind": "code",
+   "producer": "UFQ",
+   "seen": "Male / Female"
+  },
+  {
+   "field": "sex",
+   "fix": "map 1 to M, 2 to F (confirm with Rawdah)",
+   "kind": "code",
+   "producer": "RWD",
+   "seen": "1 / 2"
+  },
+  {
+   "field": "ward",
+   "fix": "map to MED, SURG, CARD, ICU, OBS",
+   "kind": "code",
+   "producer": "UFQ",
+   "seen": "INT-MED, GEN-SURG, CARDIO, ICU, OBGYN"
+  },
+  {
+   "field": "ward",
+   "fix": "map to MED, SURG, CARD, ICU, OBS",
+   "kind": "code",
+   "producer": "RWD",
+   "seen": "one-letter units M, S, C, I, O"
+  },
+  {
+   "field": "primary_dx",
+   "fix": "insert the dot after three characters",
+   "kind": "format",
+   "producer": "UFQ",
+   "seen": "ICD-10 without the dot (I509)"
+  },
+  {
+   "field": "primary_dx",
+   "fix": "upper case",
+   "kind": "format",
+   "producer": "RWD",
+   "seen": "ICD-10 in lower case (i50.9)"
+  },
+  {
+   "field": "disposition",
+   "fix": "map 1 HOME, 2 TRANSFER, 3 DIED, 4 LAMA (confirm)",
+   "kind": "code",
+   "producer": "UFQ",
+   "seen": "numbers 1 to 4"
+  },
+  {
+   "field": "disposition",
+   "fix": "map 01 HOME, 02 TRANSFER, 03 DIED, 04 LAMA (confirm)",
+   "kind": "code",
+   "producer": "RWD",
+   "seen": "01 to 04"
+  },
+  {
+   "field": "weight",
+   "fix": "multiply by 0.453592",
+   "kind": "unit",
+   "producer": "RWD",
+   "seen": "median about 170: pounds"
+  },
+  {
+   "field": "creatinine",
+   "fix": "multiply by 88.42 to get µmol/L",
+   "kind": "unit",
+   "producer": "UFQ",
+   "seen": "median about 1: mg/dL"
+  },
+  {
+   "field": "encounter_id",
+   "fix": "read as text, never as a number",
+   "kind": "format",
+   "producer": "RWD",
+   "seen": "leading zeros (0000001)"
+  },
+  {
+   "field": "national_id",
+   "fix": "normalise before hashing (Lab 1.3)",
+   "kind": "identifier",
+   "producer": "UFQ",
+   "seen": "spaces and Arabic-Indic digits"
+  },
+  {
+   "field": "national_id",
+   "fix": "normalise before hashing (Lab 1.3)",
+   "kind": "identifier",
+   "producer": "RWD",
+   "seen": "SA- prefix"
+  }
+ ],
+ "weight": [
+  {
+   "median": 78.3,
+   "p05": 49.8,
+   "p95": 106.7,
+   "producer": "SDR"
+  },
+  {
+   "median": 78.1,
+   "p05": 50.0,
+   "p95": 105.8,
+   "producer": "UFQ"
+  },
+  {
+   "median": 171.7,
+   "p05": 111.3,
+   "p95": 232.6,
+   "producer": "RWD"
+  }
+ ]
+}

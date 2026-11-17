@@ -1,0 +1,300 @@
+{
+ "gates": [
+  {
+   "invalid": 0,
+   "month": "2025-01",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-02",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-03",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 2,
+   "month": "2025-04",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.033
+  },
+  {
+   "invalid": 1,
+   "month": "2025-05",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 1,
+   "month": "2025-06",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 1,
+   "month": "2025-07",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 0,
+   "month": "2025-08",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 999,
+   "month": "2025-09",
+   "passed": false,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 16.667
+  },
+  {
+   "invalid": 1,
+   "month": "2025-10",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 0,
+   "month": "2025-11",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-12",
+   "passed": true,
+   "producer": "RWD",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-01",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 2,
+   "month": "2025-02",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.033
+  },
+  {
+   "invalid": 0,
+   "month": "2025-03",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-04",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-05",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 1,
+   "month": "2025-06",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 0,
+   "month": "2025-07",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-08",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 1,
+   "month": "2025-09",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 1,
+   "month": "2025-10",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 1,
+   "month": "2025-11",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 1,
+   "month": "2025-12",
+   "passed": true,
+   "producer": "SDR",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 1,
+   "month": "2025-01",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 1,
+   "month": "2025-02",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 0,
+   "month": "2025-03",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-04",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-05",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 1,
+   "month": "2025-06",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 0,
+   "month": "2025-07",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-08",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-09",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 1,
+   "month": "2025-10",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.017
+  },
+  {
+   "invalid": 0,
+   "month": "2025-11",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.0
+  },
+  {
+   "invalid": 0,
+   "month": "2025-12",
+   "passed": true,
+   "producer": "UFQ",
+   "rows": 5994,
+   "share": 0.0
+  }
+ ],
+ "trace": {
+  "dataset": "raw/labs/producer=RWD/month=2025-09",
+  "medians": {
+   "raw/labs/producer=RWD/month=2025-09": 0.9900000095367432,
+   "raw/labs/producer=SDR/month=2025-09": 88.69999694824219,
+   "raw/labs/producer=UFQ/month=2025-09": 91.25
+  }
+ }
+}

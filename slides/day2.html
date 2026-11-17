@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-ax="deck" data-track="data-science">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day 2 · Prepare at scale · Data Preparation at Scale: Contracts, Synthetic Data and Privacy</title>
+<meta name="generator" content="SDAIA Academy engine 1.0.0">
+<link rel="icon" href="../_engine/icon.svg">
+<link rel="alternate" type="text/markdown" href="day2.md">
+<link rel="describedby" href="../llms.txt">
+<link rel="stylesheet" href="../_engine/academy.css">
+</head>
+<body>
+<div class="deck" data-course="Data Preparation at Scale: Contracts, Synthetic Data and Privacy" data-track="data-science" data-day="Day 2">
+<section class="slide title" id="title" data-auto="title" data-label="Welcome" data-n="1">
+  <div class="kicker">SDAIA Academy · Data Preparation at Scale: Contracts, Synthetic Data and Privacy</div>
+  <h1>Prepare at scale</h1>
+  <p class="lead mt">Day 2: Thirty million rows on a laptop, loaded once, rebuilt exactly, gated per partition</p>
+  <div class="meta"><span class="track">Data Science Track</span><span>4 teaching days + capstone day</span><span>4 sessions · 4 labs</span><span>DS-405</span></div>
+  <aside class="notes"><p>Open with yesterday's Lab 1.2 table: Ufuq failed on freshness and duplicates. Today the same contract runs on 30 million rows, every morning, and must give the same answer when a load runs twice. Remind participants with less than 8 GB free memory to set RIMAH_QUICK=1 before the first setup cell.</p></aside>
+</section>
+
+<section class="slide" id="agenda" data-auto="agenda" data-label="Agenda" data-n="2">
+  <div class="kicker">Today</div>
+  <h2>Prepare at scale</h2>
+  <div class="agenda"><div class="item"><div><b>Session 1 · Columnar files and lazy execution</b><small>Partitioned columnar files and lazy plans that read only what the query needs, measured in time and peak memory</small></div></div><div class="item"><div><b>Session 2 · Incremental and idempotent loads</b><small>Loads that give the same table however often they run, by partition overwrite or merge on a key</small></div></div><div class="item"><div><b>Session 3 · Tables with history</b><small>Snapshots and versions in an open table format, and an analysis that records the version it read</small></div></div><div class="item"><div><b>Session 4 · Gates and lineage at scale</b><small>Blocking rules per partition so one bad delivery stops alone, and lineage events that lead back to the producer</small></div></div></div>
+</section>
+
+<section class="slide" id="review-day1" data-label="Review" data-lo="LO1" data-n="3">
+  <div class="kicker">Review of Day 1</div>
+  <h2>Yesterday in one decision</h2>
+  <div class="quiz" data-type="single" data-lo="LO1" data-id="review-day1-q1">
+    <p class="lead">Rawdah tells you that from next month its weight column will hold kilograms, under the same name. What do you do first?</p>
+    <div class="opts">
+      <div class="opt" data-ok data-k="A">Classify it under the policy as a breaking unit change: new major version, notice, a parallel run</div>
+      <div class="opt" data-why="Assumes a change towards the standard unit cannot hurt, when every consumer that converts pounds now divides kilograms" data-k="B">Thank them and remove the unit clause from the contract the same day</div>
+      <div class="opt" data-why="Moves the fix into one consumer's code where the other consumers never see it" data-k="C">Add an if-statement on the date in the study's pipeline</div>
+      <div class="opt" data-why="Trusts a range rule that pounds and kilograms both pass" data-k="D">Nothing: the range rule will catch any problem</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Same name, new unit is the change no schema diff shows. The policy treats it as breaking so that every consumer moves together.</div>
+  </div>
+  <aside class="notes"><p>Answer: A. Two minutes. If the room hesitates, show the hidden-change slide from Day 1 again.</p></aside>
+</section>
+
+<!-- ======================= SESSION 1 ======================= -->
+<section class="slide section" id="s1" data-auto="section" data-session="1" data-n="4">
+  <div class="kicker">Session 1</div>
+  <h1>Columnar files and lazy execution</h1>
+  <ul class="bullets outcomes"><li>Explain projection and predicate pushdown into partitioned Parquet</li><li>Rewrite an eager cleaning script as a lazy query</li><li>Measure wall time and peak memory of both on the same data</li></ul>
+  <div class="sess-no">01</div>
+</section>
+
+<section class="slide" id="the-lake" data-label="The lake" data-lo="LO2" data-n="5" data-session="1">
+  <div class="kicker">The data today</div>
+  <h2>Thirty million rows in 88 MB of partitioned Parquet</h2>
+  <div class="cols cols-2">
+    <table class="t small">
+      <tr><th>Table</th><th class="num">Rows</th></tr>
+      <tr><td>encounters</td><td class="num">1,200,024</td></tr>
+      <tr><td>labs (six tests, three rounds)</td><td class="num">21,600,432</td></tr>
+      <tr><td>pharmacy</td><td class="num">7,200,144</td></tr>
+      <tr class="hl"><td>total</td><td class="num">30,000,600</td></tr>
+    </table>
+    <pre class="code s" data-file="data/lake/raw"><code>labs/producer=SDR/month=2025-01/part-0.parquet
+labs/producer=SDR/month=2025-02/part-0.parquet
+...
+labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
+  </div>
+  <aside class="notes"><p>The setup cell runs rimah_lake.py with a fixed seed. On the course's laptop the full lake took about 55 seconds to write and is 88 MB on disk: Parquet compresses repeated identifiers and codes well. Quick mode writes 1 percent (299,700 rows) in about two seconds. Partitions are folders named key=value: producer and month.</p></aside>
+</section>
+
+<section class="slide" id="rows-vs-columns" data-label="Columns" data-lo="LO2" data-n="6" data-session="1">
+  <div class="kicker">Columnar files</div>
+  <h2>A query that needs three columns should read three columns</h2>
+  <div class="cols cols-2">
+    <div class="card c-coral flat"><h4>A row file (CSV)</h4><p class="small mb0">Every row is read whole to find three fields in it. Types are guessed on every read.</p></div>
+    <div class="card c-teal flat"><h4>A column file (Parquet)</h4><p class="small mb0">Each column is stored apart, typed and compressed, with statistics per block, so a reader skips columns and blocks it does not need.</p></div>
+  </div>
+  <p class="small mt">Partitions add a third skip: whole files, by the values in the folder names.</p>
+  <aside class="notes"><p>Ask the room what the three skips are: columns (projection), blocks inside a file (statistics), files (partitions). The lab measures what they are worth on this lake.</p></aside>
+</section>
+
+<section class="slide" id="lazy-plans" data-label="Lazy plans" data-lo="LO2" data-n="7" data-session="1">
+  <div class="kicker">Lab 2.1 · step 2</div>
+  <h2>A lazy query is a plan the optimiser can push into the scan</h2>
+  <pre class="code s" data-file="q.explain()"><code>simple π 2/2 ["encounter_id", "value"]
+  Parquet SCAN [.../producer=RWD/month=2025-09/part-0.parquet, ... 2 other sources]
+  PROJECT 4/8 COLUMNS
+  SELECTION: (col("month") == "2025-09") &amp; (col("test_code") == "CREAT")</code></pre>
+  <ul class="bullets small mt-s">
+    <li><b>3 of 36 files</b> opened: the month filter pruned the rest.</li>
+    <li><b>4 of 8 columns</b> read: the select and the filter need no more.</li>
+  </ul>
+  <aside class="notes"><p>From the course's run on the full lake with Polars 2.1. Show explain() live. A common surprise: the filter on test_code is applied while scanning, not after loading. DuckDB does the same with read_parquet(..., hive_partitioning = true): the stretch compares them.</p></aside>
+</section>
+
+<section class="slide" id="eager-vs-lazy" data-label="Measured" data-lo="LO2" data-n="8" data-session="1">
+  <div class="kicker">Lab 2.1 · steps 1, 4 and 5</div>
+  <h2>Same answer: 40 times faster, a 25th of the memory</h2>
+  <table class="t small">
+    <tr><th>Query on 30 million rows</th><th class="num">Seconds</th><th class="num">Peak memory, MB</th></tr>
+    <tr><td>Eager script (pandas, reads everything)</td><td class="num">19.6</td><td class="num">2,693</td></tr>
+    <tr><td>Lazy query (Polars)</td><td class="num">0.58</td><td class="num">391</td></tr>
+    <tr class="hl"><td>Lazy, streaming engine</td><td class="num">0.47</td><td class="num">112</td></tr>
+    <tr><td>DuckDB SQL, same files (stretch)</td><td class="num">1.70</td><td class="num">198</td></tr>
+  </table>
+  <p class="caption">One run on a 14-thread laptop with 34 GB of memory. Your numbers will differ; the order will not.</p>
+  <aside class="notes"><p>Measured with U.measure, which samples the process's resident memory every few milliseconds (tracemalloc would miss memory held by Arrow and Polars). Single runs, not averages: say so. The point is the shape: the eager script's peak grows with the lake; the streaming engine's does not. On a laptop with 8 GB the eager script at full size is close to failing.</p></aside>
+</section>
+
+<section class="slide" id="same-result-first" data-label="Same result" data-lo="LO2" data-n="9" data-session="1">
+  <div class="kicker">Lab 2.1 · step 4</div>
+  <h2>A faster query with another answer is a bug</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>Compare every key and value, with a tolerance stated for floats.</li>
+      <li>Watch joins: an inner join on a filtered side silently drops rows.</li>
+      <li>Watch nulls: <code>mean</code> skips them in both tools, <code>len</code> counts them.</li>
+    </ul>
+    <div class="card c-coral flat"><h4>Already in the output</h4><p class="small mb0">Rawdah, September: mean highest creatinine <b>1.57</b>, other months about 140. Lab 2.4 finds out why.</p></div>
+  </div>
+  <aside class="notes"><p>Both scripts reproduce the planted defect faithfully: correctness of a rewrite is not correctness of the data. Point at the 1.57 and promise the answer for session 4.</p></aside>
+</section>
+
+<section class="slide" id="streaming" data-label="Streaming" data-lo="LO2" data-n="10" data-session="1">
+  <div class="kicker">Larger than memory</div>
+  <h2>Streaming processes the files in batches, so memory stays flat</h2>
+  <div class="flow">
+    <div class="step c-teal"><b>Scan</b>a batch of row groups</div>
+    <div class="arrow">→</div>
+    <div class="step c-cyan"><b>Filter and project</b>in the batch</div>
+    <div class="arrow">→</div>
+    <div class="step c-purple"><b>Partial aggregates</b>kept, batch dropped</div>
+  </div>
+  <div class="callout note small mt"><b>Not every operation streams.</b> A global sort or a wide join may fall back to memory. Check the plan, and measure at full size once.</div>
+  <aside class="notes"><p>collect(engine="streaming") in Polars; DuckDB spills to disk when its memory limit is reached. Both are named in the tool slot as interchangeable. Sources: the Polars user guide pages on the lazy API and streaming.</p></aside>
+</section>
+
+<section class="slide" id="check-lazy" data-label="Checkpoint" data-lo="LO2" data-n="11" data-session="1">
+  <div class="kicker">Checkpoint</div>
+  <h2>Where the filter goes</h2>
+  <div class="quiz" data-type="single" data-lo="LO2" data-id="check-lazy-q1">
+    <p class="lead">Your lazy query on the lake is fast but its peak memory is the same as the eager script's. Which change most likely helps?</p>
+    <div class="opts">
+      <div class="opt" data-why="Removes the partitions that let the scan skip whole files, so even more is read" data-k="A">Rewrite the lake as one unpartitioned Parquet file, so fewer files are opened</div>
+      <div class="opt" data-why="Adds threads to a problem of bytes read" data-k="B">Run it on more CPU cores</div>
+      <div class="opt" data-why="Caches the very data that should never have been loaded" data-k="C">Collect the labs table first, then filter it</div>
+      <div class="opt" data-ok data-k="D">Read the plan: put the month and test filters on the scan and select only needed columns</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Memory follows what is read. If the plan shows a full projection or no selection on the scan, the query reads everything; pushing filters and columns down is what saves memory.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. C is the eager script in disguise: collect() before filter() loads all 21.6 million laboratory rows.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-2-1" data-auto="lab" data-lab="2.1" data-label="Lab 2.1" data-n="12" data-session="1">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 2.1 · 25 min</div><h2>From eager to lazy</h2><p class="lead small">Rewrite an eager cleaning script as a lazy query over the partitioned lake and compare time, peak memory and the result.</p><a class="nb" href="../labs/D2_1_lazy_columnar.ipynb">D2_1_lazy_columnar.ipynb</a></div><ul class="checklist"><li>Run the eager script and measure it <span class="min">5 min</span></li><li>Read the lake's partitions and the query plan <span class="min">5 min</span></li><li>Write the lazy query <span class="min">8 min</span></li><li>Same result, less time and memory <span class="min">4 min</span></li><li>Streaming for the full size <span class="min">3 min</span></li><li class="stretch">✱ Stretch: The same query in DuckDB SQL over the same files</li></ul></div>
+  <aside class="notes"><p>Walk the room. Usual problems: forgetting hive_partitioning=True (no producer or month columns); joining before filtering by month; comparing float columns for exact equality. In quick mode the times are all under a few seconds: the slide holds the full-size numbers. In Colab, the full lake fits on a CPU runtime.</p></aside>
+</section>
+
+<!-- ======================= SESSION 2 ======================= -->
+<section class="slide section" id="s2" data-auto="section" data-session="2" data-n="13">
+  <div class="kicker">Session 2</div>
+  <h1>Incremental and idempotent loads</h1>
+  <ul class="bullets outcomes"><li>Show that an append load is not idempotent</li><li>Make a daily load idempotent by partition overwrite or merge</li><li>Prove idempotence by loading one day twice and comparing table hashes</li></ul>
+  <div class="sess-no">02</div>
+</section>
+
+<section class="slide" id="loads-run-twice" data-label="Run twice" data-lo="LO2" data-n="14" data-session="2">
+  <div class="kicker">Real schedules</div>
+  <h2>Every load will run twice one day</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-coral"><h4>Retry</h4><p class="small mb0">The load wrote, then failed before saying "done"; the scheduler runs it again.</p></div>
+    <div class="card c-amber"><h4>Re-delivery</h4><p class="small mb0">Ufuq sends 2026-01-03 again with 20 values corrected.</p></div>
+    <div class="card c-purple"><h4>Late correction</h4><p class="small mb0">Sidra's 2026-01-05 file corrects 15 results of 2026-01-02.</p></div>
+  </div>
+  <p class="small mt"><b>Idempotent:</b> running a load twice leaves the table exactly as running it once.</p>
+  <aside class="notes"><p>All three are planted in data/lake/landing. Ask who has seen a dashboard double for one day after a re-run. Most hands go up.</p></aside>
+</section>
+
+<section class="slide" id="append-doubles" data-label="Append" data-lo="LO2" data-n="15" data-session="2">
+  <div class="kicker">Lab 2.2 · step 1</div>
+  <h2>An append load run twice doubles the day, with no error anywhere</h2>
+  <div class="cols cols-2">
+    <div class="stat center"><div class="big">59,994 → 119,988</div><div class="lbl">rows after loading 2026-01-01 a second time</div></div>
+    <ul class="bullets small">
+      <li>Every key duplicated; counts and rates downstream double for that day.</li>
+      <li>Nothing fails: the file is valid, the table accepts it.</li>
+    </ul>
+  </div>
+  <aside class="notes"><p>Full-size numbers from the course's run. A duplicate check on the business key (encounter, test, round) would catch it after the fact; the fix is a load that cannot produce it.</p></aside>
+</section>
+
+<section class="slide" id="fingerprint" data-label="Fingerprint" data-lo="LO2" data-n="16" data-session="2">
+  <div class="kicker">Lab 2.2 · step 2</div>
+  <h2>"Same table" means same content, in any order and any files</h2>
+  <pre class="code s" data-file="Lab 2.2"><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">table_hash</span>(<span class="hljs-params">df</span>):
+    d = df.select(COLS).sort(KEY)          <span class="hljs-comment"># fixed columns, fixed order</span>
+    <span class="hljs-keyword">return</span> hashlib.sha256(d.write_csv().encode()).hexdigest()[:<span class="hljs-number">16</span>]</code></pre>
+  <p class="small mt-s">Two tables with the same fingerprint hold the same rows. That is the proof the outcome asks for: identical output when a day is re-run.</p>
+  <aside class="notes"><p>Leave out columns that legitimately change between runs (a load timestamp). Here the delivered_day is left out because a re-sent day keeps its date anyway. U.fingerprint in the helper does the same with column hashes, faster on big tables.</p></aside>
+</section>
+
+<section class="slide" id="partition-overwrite" data-label="Overwrite" data-lo="LO2" data-n="17" data-session="2">
+  <div class="kicker">Lab 2.2 · step 3</div>
+  <h2>Overwrite the day's partition: a re-run replaces, never adds</h2>
+  <pre class="code s" data-file="Lab 2.2"><code class="language-python">df.write_delta(table, mode=<span class="hljs-string">&quot;overwrite&quot;</span>,
+    delta_write_options={<span class="hljs-string">&quot;predicate&quot;</span>: <span class="hljs-string">f&quot;delivered_day = &#x27;<span class="hljs-subst">{day}</span>&#x27;&quot;</span>,
+                         <span class="hljs-string">&quot;partition_by&quot;</span>: [<span class="hljs-string">&quot;delivered_day&quot;</span>]})</code></pre>
+  <div class="callout warn small mt"><b>Its limit.</b> Days 1 to 5 by overwrite: 299,991 rows, <b>15 duplicate keys</b>: Sidra's corrections landed in day 5's partition, the originals stayed in day 2's.</div>
+  <aside class="notes"><p>Delta Lake's overwrite with a predicate rewrites only the matching rows in one atomic commit. Ufuq's re-sent day is handled: the newer file replaces the day.</p></aside>
+</section>
+
+<section class="slide" id="merge-on-key" data-label="Merge" data-lo="LO2" data-n="18" data-session="2">
+  <div class="kicker">Lab 2.2 · step 4</div>
+  <h2>Merge on the business key: corrections replace what they correct</h2>
+  <pre class="code s" data-file="Lab 2.2"><code class="language-python">DeltaTable(table).merge(df.to_arrow(),
+    predicate=<span class="hljs-string">&quot;t.encounter_id = s.encounter_id AND t.test_code = s.test_code &quot;</span>
+              <span class="hljs-string">&quot;AND t.result_seq = s.result_seq&quot;</span>,
+    source_alias=<span class="hljs-string">&quot;s&quot;</span>, target_alias=<span class="hljs-string">&quot;t&quot;</span>) \
+  .when_matched_update_all().when_not_matched_insert_all().execute()</code></pre>
+  <p class="small mt-s">Days 1 to 5 by merge: 299,976 rows, <b>0 duplicate keys</b>.</p>
+  <aside class="notes"><p>The business key is what the producer means by "the same result": encounter, test and round. A key that is too narrow merges different results; too wide, and corrections insert instead of update. The contract should name the key.</p></aside>
+</section>
+
+<section class="slide" id="proof-twice" data-label="The proof" data-lo="LO2" data-n="19" data-session="2">
+  <div class="kicker">Lab 2.2 · step 5</div>
+  <h2>The proof: every day loaded twice gives the same fingerprint</h2>
+  <div class="trace s">
+    <div class="ev result"><b>once</b><span>days 1, 2, 3, 4, 5 → <code>fa71c591dcabaeb1</code></span></div>
+    <div class="ev result"><b>twice</b><span>days 1 to 5, again 1 to 5, and day 3 a third time → <code>fa71c591dcabaeb1</code></span></div>
+    <div class="ev final"><b>result</b><span>identical output when a day is re-run</span></div>
+  </div>
+  <div class="callout note small mt"><b>Order still matters.</b> Replaying day 2 after day 5 puts the old values back until day 5 is replayed. Real pipelines compare a delivery version before updating.</div>
+  <aside class="notes"><p>Full-size fingerprints from the course's run. The note is honest about the limit of "update all": in the twice-run, the second pass over day 2 reverts Sidra's corrections and the second pass over day 5 restores them. A when_matched_update with a condition on a delivery sequence number fixes it; it is a good capstone refinement.</p></aside>
+</section>
+
+<section class="slide" id="check-idempotent" data-label="Checkpoint" data-lo="LO2" data-n="20" data-session="2">
+  <div class="kicker">Checkpoint</div>
+  <h2>Which load survives Sidra?</h2>
+  <div class="quiz" data-type="single" data-lo="LO2" data-id="check-idempotent-q1">
+    <p class="lead">Sidra's delivery on day 5 corrects results first delivered on day 2. Which load leaves exactly one row per result, holding the corrected value?</p>
+    <div class="opts">
+      <div class="opt" data-why="Repeats every row each time the day is loaded" data-k="A">Append each day's file</div>
+      <div class="opt" data-ok data-k="B">Merge each day's file on encounter, test and round</div>
+      <div class="opt" data-why="Replaces day 5's partition but leaves the originals in day 2's" data-k="C">Overwrite each day's partition</div>
+      <div class="opt" data-why="Removes duplicates by every column, so the corrected and original rows both stay" data-k="D">Append, then drop rows that are identical in every column</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Only matching on the business key finds the earlier row a correction refers to, wherever it was loaded.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. D is a common trap: a corrected row differs in its value, so it is not an identical duplicate.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-2-2" data-auto="lab" data-lab="2.2" data-label="Lab 2.2" data-n="21" data-session="2">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 2.2 · 25 min</div><h2>Load one day twice</h2><p class="lead small">Make the daily laboratory load idempotent and prove it by loading one day twice, including a day the producer delivered again with corrections.</p><a class="nb" href="../labs/D2_2_idempotent_load.ipynb">D2_2_idempotent_load.ipynb</a></div><ul class="checklist"><li>The append load and its duplicates <span class="min">5 min</span></li><li>A table fingerprint <span class="min">4 min</span></li><li>Idempotent: overwrite the day's partition <span class="min">6 min</span></li><li>Corrections: merge on the business key <span class="min">6 min</span></li><li>Load every day twice and compare <span class="min">4 min</span></li><li class="stretch">✱ Stretch: Keep a load log so a day is skipped when its file has not changed</li></ul></div>
+  <aside class="notes"><p>Walk the room. Usual problems: an overwrite without a predicate (it replaces the whole table: the fingerprint test catches it); a merge predicate missing one key column (the 15 corrections insert); hashing a table that still has a load timestamp column. On Windows, keep the course folder short: Delta file names are long.</p></aside>
+</section>
+
+<!-- ======================= SESSION 3 ======================= -->
+<section class="slide section" id="s3" data-auto="section" data-session="3" data-n="22">
+  <div class="kicker">Session 3</div>
+  <h1>Tables with history</h1>
+  <ul class="bullets outcomes"><li>Read an earlier version of a table by version number</li><li>Rebuild an analysis set exactly from the recorded version</li><li>Explain what retention and vacuuming do to time travel</li></ul>
+  <div class="sess-no">03</div>
+</section>
+
+<section class="slide" id="reproduce-question" data-label="The question" data-lo="LO2" data-n="23" data-session="3">
+  <div class="kicker">The board's question</div>
+  <h2>"Can you reproduce exactly what the board saw in January?"</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>Since then, producers corrected 2% of December discharge dates.</li>
+      <li>Rawdah delivered late December encounters.</li>
+      <li>Today's table gives different December figures.</li>
+    </ul>
+    <div class="card c-navy tint"><h4>Without history</h4><p class="small mb0">You rebuild from backups, if any, and hope nothing else changed.</p></div>
+  </div>
+  <aside class="notes"><p>Dr. Fadwa Al-Qassabi's question is the reproducibility promise every release makes. Lab 2.3's setup builds the table with four versions from the lake.</p></aside>
+</section>
+
+<section class="slide" id="table-formats" data-label="Table formats" data-lo="LO2" data-n="24" data-session="3">
+  <div class="kicker">Open table formats</div>
+  <h2>A table format adds a log of commits to files: every commit is a version</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>Delta Lake</h4><p class="small mb0">A JSON log beside the Parquet files. Used in the labs through delta-rs: no Java needed.</p></div>
+    <div class="card c-cyan"><h4>Apache Iceberg</h4><p class="small mb0">Snapshots with metadata files; time travel by snapshot id.</p></div>
+    <div class="card c-purple"><h4>DuckLake</h4><p class="small mb0">The catalog in a SQL database; snapshots and time travel.</p></div>
+  </div>
+  <p class="small mt">Same ideas in all three: atomic commits, versions, time travel, schema evolution.</p>
+  <aside class="notes"><p>Interchangeable examples of the slot. Facts from each project's own site this month: DuckLake keeps its metadata in a SQL database (PostgreSQL, MySQL, SQLite or DuckDB) and supports snapshots and time travel; Iceberg queries with FOR VERSION AS OF a snapshot id. Check versions before the cohort.</p></aside>
+</section>
+
+<section class="slide" id="history-log" data-label="History" data-lo="LO2" data-n="25" data-session="3">
+  <div class="kicker">Lab 2.3 · step 1</div>
+  <h2>Four commits, four versions of December</h2>
+  <table class="t small">
+    <tr><th class="num">Version</th><th>Operation</th><th>What happened</th></tr>
+    <tr><td class="num">0</td><td>WRITE</td><td>October and November loaded</td></tr>
+    <tr class="hl"><td class="num">1</td><td>WRITE (append)</td><td>December arrives; the board's figures are built here</td></tr>
+    <tr><td class="num">2</td><td>MERGE</td><td>2% of December discharges corrected</td></tr>
+    <tr><td class="num">3</td><td>WRITE (append)</td><td>Rawdah's late December encounters</td></tr>
+  </table>
+  <aside class="notes"><p>Printed from DeltaTable.history() in the lab. Ask: if the analysis had not recorded "version 1", how would you find it? By timestamps, if you trust them, and only if nothing was vacuumed.</p></aside>
+</section>
+
+<section class="slide" id="record-version" data-label="Record it" data-lo="LO2" data-n="26" data-session="3">
+  <div class="kicker">Lab 2.3 · step 2</div>
+  <h2>Record the version with the analysis, and the fingerprint of what it produced</h2>
+  <pre class="code s" data-file="analysis run record"><code class="language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;analysis&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;december_discharges&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;table&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;curated/encounters&quot;</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;version&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;rows&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">15</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;fingerprint&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2b4a6dfab81fa30c&quot;</span><span class="hljs-punctuation">}</span></code></pre>
+  <p class="small mt-s">Two fields make the figures reproducible: the version read and the fingerprint written.</p>
+  <aside class="notes"><p>The fingerprint is from the course's full-size run; quick mode gives another one. The capstone README reports the table versions behind every number it states.</p></aside>
+</section>
+
+<section class="slide" id="rebuild-identical" data-label="Rebuilt" data-lo="LO2" data-n="27" data-session="3">
+  <div class="kicker">Lab 2.3 · steps 3 and 4</div>
+  <h2>Read version 1, rebuild, compare: identical; today: every cell moved</h2>
+  <div class="cols cols-2">
+    <pre class="code s" data-file="Lab 2.3"><code class="language-python">then = analysis_set(pl.read_delta(TABLE, version=<span class="hljs-number">1</span>))
+U.fingerprint(then) == RUN[<span class="hljs-string">&quot;fingerprint&quot;</span>]   <span class="hljs-comment"># True</span></code></pre>
+    <div class="stat center"><div class="big">15 of 15</div><div class="lbl">producer and ward cells differ between version 1 and today (full size)</div></div>
+  </div>
+  <aside class="notes"><p>In quick mode 10 of 15 cells change; at full size all 15, because 2% of 100,000 December encounters touches every cell. Rawdah's cells change in discharges as well as days: only Rawdah sent late rows.</p></aside>
+</section>
+
+<section class="slide" id="vacuum" data-label="Vacuum" data-lo="LO2" data-n="28" data-session="3">
+  <div class="kicker">Lab 2.3 · step 5</div>
+  <h2>Vacuum deletes the files old versions need</h2>
+  <div class="cols cols-2">
+    <div class="trace s">
+      <div class="ev call"><b>vacuum</b><span>retention 0 hours on a copy</span></div>
+      <div class="ev error"><b>read v1</b><span><code>FileNotFoundError</code></span></div>
+    </div>
+    <ul class="bullets small">
+      <li>Delta's default retention is seven days.</li>
+      <li>Set it to the reproducibility promise, or snapshot each release with its fingerprint.</li>
+      <li>The board and the data owner decide the promise, not the platform alone.</li>
+    </ul>
+  </div>
+  <aside class="notes"><p>Run on a copy in the lab, never on the shared table. The retention is also a privacy question: old versions keep corrected or deleted personal data alive. Destroying data on request under the PDPL means old versions too.</p></aside>
+</section>
+
+<section class="slide" id="check-history" data-label="Checkpoint" data-lo="LO2" data-n="29" data-session="3">
+  <div class="kicker">Checkpoint</div>
+  <h2>Reproduce a release</h2>
+  <div class="quiz" data-type="single" data-lo="LO2" data-id="check-history-q1">
+    <p class="lead">A release from last March must be reproduced. The run log names the table but not the version, and the table is vacuumed weekly with seven days' retention. What is true?</p>
+    <div class="opts">
+      <div class="opt" data-why="Assumes time travel works without the files the old version needs" data-k="A">Read the table as of last March's timestamp</div>
+      <div class="opt" data-ok data-k="B">It cannot be rebuilt exactly from the table; only a kept snapshot of the release would prove it</div>
+      <div class="opt" data-why="Today's data includes every correction since March" data-k="C">Rebuild from today's table: corrections only improve it</div>
+      <div class="opt" data-why="Restoring needs the same files that vacuum removed" data-k="D">Restore the table to March and rerun</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Time travel needs both the log entry and the data files; vacuum removed the files. Record versions and keep release snapshots.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. The capstone asks participants to commit the fingerprints of what they release for exactly this reason.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-2-3" data-auto="lab" data-lab="2.3" data-label="Lab 2.3" data-n="30" data-session="3">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 2.3 · 25 min</div><h2>Rebuild last month</h2><p class="lead small">Rebuild last month's analysis set from the table snapshot it was built on, prove it is identical, and measure what later corrections changed.</p><a class="nb" href="../labs/D2_3_table_snapshots.ipynb">D2_3_table_snapshots.ipynb</a></div><ul class="checklist"><li>Read the table's history <span class="min">4 min</span></li><li>The analysis run record <span class="min">4 min</span></li><li>Rebuild from the recorded version <span class="min">7 min</span></li><li>Prove it identical, then diff with today <span class="min">6 min</span></li><li>What vacuuming would break <span class="min">4 min</span></li><li class="stretch">✱ Stretch: Restore the table to the recorded version and compare</li></ul></div>
+  <aside class="notes"><p>Walk the room. Usual problems: read_delta without version (reads today's table); comparing analysis sets with == on DataFrames (use the fingerprint); running vacuum on the lab's table instead of the copy (rerun the setup cell, it rebuilds the table).</p></aside>
+</section>
+
+<!-- ======================= SESSION 4 ======================= -->
+<section class="slide section" id="s4" data-auto="section" data-session="4" data-n="31">
+  <div class="kicker">Session 4</div>
+  <h1>Gates and lineage at scale</h1>
+  <ul class="bullets outcomes"><li>Run blocking rules per partition and quarantine the failures</li><li>Emit OpenLineage run events for every job run</li><li>Trace a defect in an output to its producer and partition</li></ul>
+  <div class="sess-no">04</div>
+</section>
+
+<section class="slide" id="dip" data-label="The dip" data-lo="LO2" data-n="32" data-session="4">
+  <div class="kicker">Yesterday's figure</div>
+  <h2>Median creatinine fell by a quarter in September, and nobody knows why</h2>
+  <div class="bars">
+    <div class="row"><span>2025-08</span><div class="bar c-teal" style="--w:99%"></div><span class="val">89.8</span></div>
+    <div class="row"><span>2025-09</span><div class="bar c-coral" style="--w:74%"></div><span class="val">66.5</span></div>
+    <div class="row"><span>2025-10</span><div class="bar c-teal" style="--w:100%"></div><span class="val">90.1</span></div>
+  </div>
+  <p class="caption">Median creatinine, µmol/L, all producers, from yesterday's run without gates (full lake).</p>
+  <aside class="notes"><p>Ask for hypotheses before showing anything else: a season, a new lab analyser, a coding change, a producer. Write them on the board; session 4 tests them with lineage.</p></aside>
+</section>
+
+<section class="slide" id="gate-per-partition" data-label="Per partition" data-lo="LO2" data-n="33" data-session="4">
+  <div class="kicker">Lab 2.4 · step 1</div>
+  <h2>Gate each partition, so one bad delivery stops alone</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>The contract's ranges, per test: creatinine 20 to 1,500 µmol/L, glucose 1 to 60 mmol/L.</li>
+      <li>A partition fails if more than 0.5% of its results fall outside.</li>
+      <li>One lazy query gates all 36 partitions.</li>
+    </ul>
+    <table class="t small">
+      <tr><th>Partition</th><th class="num">Rows</th><th class="num">Invalid</th></tr>
+      <tr class="hl"><td>RWD, 2025-09</td><td class="num">600,012</td><td class="num">100,002 (16.7%)</td></tr>
+      <tr><td>other 35</td><td class="num"></td><td class="num">0</td></tr>
+    </table>
+  </div>
+  <aside class="notes"><p>Full-size numbers. 16.7% is exactly one test of six: every creatinine result in the partition is out of range. A whole-load gate would have stopped all three producers' data for the month; a gate per partition publishes 35 and quarantines one.</p></aside>
+</section>
+
+<section class="slide" id="quarantine" data-label="Quarantine" data-lo="LO2" data-n="34" data-session="4">
+  <div class="kicker">Lab 2.4 · step 2</div>
+  <h2>Publish what passed, quarantine what failed, and say what is missing</h2>
+  <div class="flow">
+    <div class="step c-teal"><b>35 partitions</b>published</div>
+    <div class="arrow">→</div>
+    <div class="step c-coral"><b>RWD 2025-09</b>quarantined until Rawdah re-sends</div>
+    <div class="arrow">→</div>
+    <div class="step c-purple"><b>September figure</b>90.2, from 2 producers, flagged</div>
+  </div>
+  <aside class="notes"><p>The rebuilt figure for September is 90.2 from Sidra and Ufuq only. A figure that silently drops a producer is the same bias as Ufuq's stale delivery on Day 1: publish the count of producers with the figure.</p></aside>
+</section>
+
+<section class="slide" id="openlineage" data-label="OpenLineage" data-lo="LO2" data-n="35" data-session="4">
+  <div class="kicker">Lab 2.4 · step 3</div>
+  <h2>A lineage event says which run read what and wrote what</h2>
+  <pre class="code s" data-file="artifacts/D2_4/today.jsonl"><code class="language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;eventType&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;FAIL&quot;</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;job&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;namespace&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;rimah&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;rimah.labs_gate&quot;</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;run&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;runId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;dba00c8e-...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;facets&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;gate&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;invalid&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">100002</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;rows&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">600012</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;inputs&quot;</span><span class="hljs-punctuation">:</span>  <span class="hljs-punctuation">[</span><span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;raw/labs/producer=RWD/month=2025-09&quot;</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;outputs&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;quarantine/labs/producer=RWD/month=2025-09&quot;</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">}</span></code></pre>
+  <aside class="notes"><p>OpenLineage's object model: run events (START, then COMPLETE or FAIL) naming a job, a run and its input and output datasets, with facets for anything else. Marquez is the reference backend that stitches events into a graph; most orchestrators emit them too. The lab writes events to a file: no server needed. Source: the OpenLineage object model page.</p></aside>
+</section>
+
+<section class="slide" id="trace-back" data-label="Trace back" data-lo="LO2" data-n="36" data-session="4">
+  <div class="kicker">Lab 2.4 · step 4</div>
+  <h2>Walk the events backwards from the figure to the partition</h2>
+  <div class="trace s">
+    <div class="ev user"><b>start</b><span><code>analysis/monthly_creatinine</code></span></div>
+    <div class="ev call"><b>written by</b><span><code>rimah.monthly_creatinine</code>: 36 curated partitions</span></div>
+    <div class="ev call"><b>written by</b><span><code>rimah.labs_publish</code>: 36 raw partitions; September: 3</span></div>
+    <div class="ev result"><b>medians</b><span>SDR 89.97 · UFQ 90.51 · <b>RWD 1.02</b></span></div>
+    <div class="ev final"><b>traced</b><span>Rawdah, September: creatinine in mg/dL under a µmol/L label</span></div>
+  </div>
+  <aside class="notes"><p>The upstream walk finds 72 datasets in yesterday's events; filtering by month leaves three raw partitions; their medians name the producer. The same unit flip as Day 1, now inside a partition. Ihab, Kinan and Ashjan each get a different message: only Ashjan's says "re-send September".</p></aside>
+</section>
+
+<section class="slide" id="check-gates" data-label="Checkpoint" data-lo="LO2" data-n="37" data-session="4">
+  <div class="kicker">Checkpoint</div>
+  <h2>One partition fails</h2>
+  <div class="quiz" data-type="single" data-lo="LO2" data-id="check-gates-q1">
+    <p class="lead">Rawdah's September laboratory partition fails its gate. The study's monthly report is due today. What does the pipeline do?</p>
+    <div class="opts">
+      <div class="opt" data-why="Stops good data from two producers and eleven months because of one partition" data-k="A">Stop the whole load until Rawdah re-sends</div>
+      <div class="opt" data-why="Publishes known bad values into the study" data-k="B">Publish it with a warning in the log</div>
+      <div class="opt" data-ok data-k="C">Publish the 35 partitions that passed, quarantine Rawdah's September, and flag September as two producers</div>
+      <div class="opt" data-why="Repairs a producer's data downstream without the producer confirming the cause" data-k="D">Divide the partition's values by 88.42 and publish</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Gating per partition keeps a bad delivery from blocking good ones, and the flag keeps the figure honest about what it contains.</div>
+  </div>
+  <aside class="notes"><p>Answer: C. D is tempting because the cause is obvious here: but it must be confirmed by Rawdah, and the fix belongs in a re-sent partition, not a silent patch.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-2-4" data-auto="lab" data-lab="2.4" data-label="Lab 2.4" data-n="38" data-session="4">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 2.4 · 25 min</div><h2>Gates and lineage per partition</h2><p class="lead small">Run blocking rules per partition of the lake, quarantine what fails, emit lineage events, and trace a seeded defect to its producer and partition.</p><a class="nb" href="../labs/D2_4_gates_lineage.ipynb">D2_4_gates_lineage.ipynb</a></div><ul class="checklist"><li>Contract rules as per-partition gates <span class="min">7 min</span></li><li>Quarantine and publish the rest <span class="min">5 min</span></li><li>Emit OpenLineage run events <span class="min">6 min</span></li><li>Trace the defect back through the events <span class="min">7 min</span></li><li class="stretch">✱ Stretch: A gate on the distribution, not only on the values</li></ul></div>
+  <aside class="notes"><p>Walk the room. Usual problems: gating the whole table instead of grouping by producer and month; integer ranges that break the join (the lab casts them to float); following events forwards instead of backwards. The stretch's distribution gate catches a change of scale that stays inside the range.</p></aside>
+</section>
+
+<!-- ======================= CLOSING ======================= -->
+<section class="slide" id="wrap-up" data-label="Recap" data-n="39" data-session="4">
+  <div class="kicker">Day 2 · wrap-up</div>
+  <h2>Three things to keep</h2>
+  <div class="cols cols-3">
+    <div class="card c-teal"><h4>Read less</h4><p class="small mb0">Partitions, columns and lazy plans: 2.7 GB became 112 MB for the same answer.</p></div>
+    <div class="card c-coral"><h4>Load twice, same table</h4><p class="small mb0">Merge on the business key; prove it with a fingerprint.</p></div>
+    <div class="card c-purple"><h4>Versions and gates</h4><p class="small mb0">Record the version you read; gate per partition; emit lineage so a figure can be traced.</p></div>
+  </div>
+  <aside class="notes"><p>Ask each table which of today's three their current pipeline lacks. The capstone's "contracts and pipeline" criterion checks all three.</p></aside>
+</section>
+
+<section class="slide dark" id="next" data-label="Next" data-n="40" data-session="4">
+  <div class="kicker">Next</div>
+  <h2>Day 3: Synthesise and attack</h2>
+  <p class="lead">The university wants a copy. Tomorrow you generate synthetic patients and encounters, measure whether the readmission model still works on them, and attack them to see what leaks.</p>
+  <aside class="notes"><p>Day 3 uses the study tables in labs/data/study, committed with the course: no lake needed. Delete labs/artifacts if disks are full; the Day 2 lake can be deleted too (rimah_lake.py writes it again).</p></aside>
+</section>
+</div>
+<script type="application/json" id="academy-data">{"v":1,"engine":"1.0.0","build":{"at":"2026-11-15T21:37:39Z","version":"2027.1.0","commit":"0cb43b2"},"course":{"id":"ds-405","code":"DS-405","title":"Data Preparation at Scale: Contracts, Synthetic Data and Privacy","track":"data-science","lang":"en","dir":"ltr","url":"https://sdaiaacademy.github.io/ds-405/","repo":"SDAIAAcademy/ds-405","home":"../index.html"},"deck":{"id":"day2","kind":"day","day":2,"label":"Day 2","title":"Prepare at scale","prev":"day1.html","next":"day3.html","md":"day2.md","alt":{}},"sessions":[{"n":1,"label":"Session 1","title":"Columnar files and lazy execution","slide":"s1","outcomes":["Explain projection and predicate pushdown into partitioned Parquet","Rewrite an eager cleaning script as a lazy query","Measure wall time and peak memory of both on the same data"],"minutes":50,"lab":{"id":"2.1","title":"From eager to lazy","minutes":25,"href":"../labs/D2_1_lazy_columnar.ipynb"}},{"n":2,"label":"Session 2","title":"Incremental and idempotent loads","slide":"s2","outcomes":["Show that an append load is not idempotent","Make a daily load idempotent by partition overwrite or merge","Prove idempotence by loading one day twice and comparing table hashes"],"minutes":50,"lab":{"id":"2.2","title":"Load one day twice","minutes":25,"href":"../labs/D2_2_idempotent_load.ipynb"}},{"n":3,"label":"Session 3","title":"Tables with history","slide":"s3","outcomes":["Read an earlier version of a table by version number","Rebuild an analysis set exactly from the recorded version","Explain what retention and vacuuming do to time travel"],"minutes":50,"lab":{"id":"2.3","title":"Rebuild last month","minutes":25,"href":"../labs/D2_3_table_snapshots.ipynb"}},{"n":4,"label":"Session 4","title":"Gates and lineage at scale","slide":"s4","outcomes":["Run blocking rules per partition and quarantine the failures","Emit OpenLineage run events for every job run","Trace a defect in an output to its producer and partition"],"minutes":50,"lab":{"id":"2.4","title":"Gates and lineage per partition","minutes":25,"href":"../labs/D2_4_gates_lineage.ipynb"}}],"slides":[{"id":"title","n":1,"title":"Prepare at scale","kind":"title","session":0,"hash":"643a0227","md":"#### [day2#title] Prepare at scale\n\n*SDAIA Academy · Data Preparation at Scale: Contracts, Synthetic Data and Privacy*\n\nDay 2: Thirty million rows on a laptop, loaded once, rebuilt exactly, gated per partition\n\nData Science Track · 4 teaching days + capstone day · 4 sessions · 4 labs · DS-405","notes":"Open with yesterday's Lab 1.2 table: Ufuq failed on freshness and duplicates. Today the same contract runs on 30 million rows, every morning, and must give the same answer when a load runs twice. Remind participants with less than 8 GB free memory to set RIMAH_QUICK=1 before the first setup cell.","minutes":null,"lo":[]},{"id":"agenda","n":2,"title":"Prepare at scale","kind":"content","session":0,"hash":"d2fb0687","md":"#### [day2#agenda] Prepare at scale\n\n*Today*\n\n- **Session 1 · Columnar files and lazy execution**: Partitioned columnar files and lazy plans that read only what the query needs, measured in time and peak memory\n- **Session 2 · Incremental and idempotent loads**: Loads that give the same table however often they run, by partition overwrite or merge on a key\n- **Session 3 · Tables with history**: Snapshots and versions in an open table format, and an analysis that records the version it read\n- **Session 4 · Gates and lineage at scale**: Blocking rules per partition so one bad delivery stops alone, and lineage events that lead back to the producer","notes":"","minutes":null,"lo":[]},{"id":"review-day1","n":3,"title":"Yesterday in one decision","kind":"quiz","session":0,"hash":"4f5489d9","md":"#### [day2#review-day1] Yesterday in one decision\n\n*Review of Day 1*\n\n**Question:** Rawdah tells you that from next month its weight column will hold kilograms, under the same name. What do you do first?\n\n- A. Classify it under the policy as a breaking unit change: new major version, notice, a parallel run\n- B. Thank them and remove the unit clause from the contract the same day\n- C. Add an if-statement on the date in the study's pipeline\n- D. Nothing: the range rule will catch any problem","notes":"Answer: A. Two minutes. If the room hesitates, show the hidden-change slide from Day 1 again.","minutes":null,"lo":["LO1"]},{"id":"s1","n":4,"title":"Columnar files and lazy execution","kind":"section","session":1,"hash":"f8d84e61","md":"#### [day2#s1] Columnar files and lazy execution\n\n*Session 1*\n\n- Explain projection and predicate pushdown into partitioned Parquet\n- Rewrite an eager cleaning script as a lazy query\n- Measure wall time and peak memory of both on the same data","notes":"","minutes":null,"lo":["LO2"]},{"id":"the-lake","n":5,"title":"Thirty million rows in 88 MB of partitioned Parquet","kind":"content","session":1,"hash":"d0c68725","md":"#### [day2#the-lake] Thirty million rows in 88 MB of partitioned Parquet\n\n*The data today*\n\n| Table | Rows |\n| --- | --- |\n| encounters | 1,200,024 |\n| labs (six tests, three rounds) | 21,600,432 |\n| pharmacy | 7,200,144 |\n| total | 30,000,600 |\n\n```\n# file: data/lake/raw\nlabs/producer=SDR/month=2025-01/part-0.parquet\nlabs/producer=SDR/month=2025-02/part-0.parquet\n...\nlabs/producer=RWD/month=2025-12/part-0.parquet\n```","notes":"The setup cell runs rimah_lake.py with a fixed seed. On the course's laptop the full lake took about 55 seconds to write and is 88 MB on disk: Parquet compresses repeated identifiers and codes well. Quick mode writes 1 percent (299,700 rows) in about two seconds. Partitions are folders named key=value: producer and month.","minutes":null,"lo":["LO2"]},{"id":"rows-vs-columns","n":6,"title":"A query that needs three columns should read three columns","kind":"content","session":1,"hash":"683b94e6","md":"#### [day2#rows-vs-columns] A query that needs three columns should read three columns\n\n*Columnar files*\n\n- **A row file (CSV).** Every row is read whole to find three fields in it. Types are guessed on every read.\n- **A column file (Parquet).** Each column is stored apart, typed and compressed, with statistics per block, so a reader skips columns and blocks it does not need.\n\nPartitions add a third skip: whole files, by the values in the folder names.","notes":"Ask the room what the three skips are: columns (projection), blocks inside a file (statistics), files (partitions). The lab measures what they are worth on this lake.","minutes":null,"lo":["LO2"]},{"id":"lazy-plans","n":7,"title":"A lazy query is a plan the optimiser can push into the scan","kind":"content","session":1,"hash":"b7811f34","md":"#### [day2#lazy-plans] A lazy query is a plan the optimiser can push into the scan\n\n*Lab 2.1 · step 2*\n\n```\n# file: q.explain()\nsimple π 2/2 [\"encounter_id\", \"value\"]\n  Parquet SCAN [.../producer=RWD/month=2025-09/part-0.parquet, ... 2 other sources]\n  PROJECT 4/8 COLUMNS\n  SELECTION: (col(\"month\") == \"2025-09\") & (col(\"test_code\") == \"CREAT\")\n```\n\n- **3 of 36 files** opened: the month filter pruned the rest.\n- **4 of 8 columns** read: the select and the filter need no more.","notes":"From the course's run on the full lake with Polars 2.1. Show explain() live. A common surprise: the filter on test_code is applied while scanning, not after loading. DuckDB does the same with read_parquet(..., hive_partitioning = true): the stretch compares them.","minutes":null,"lo":["LO2"]},{"id":"eager-vs-lazy","n":8,"title":"Same answer: 40 times faster, a 25th of the memory","kind":"content","session":1,"hash":"d100ee34","md":"#### [day2#eager-vs-lazy] Same answer: 40 times faster, a 25th of the memory\n\n*Lab 2.1 · steps 1, 4 and 5*\n\n| Query on 30 million rows | Seconds | Peak memory, MB |\n| --- | --- | --- |\n| Eager script (pandas, reads everything) | 19.6 | 2,693 |\n| Lazy query (Polars) | 0.58 | 391 |\n| Lazy, streaming engine | 0.47 | 112 |\n| DuckDB SQL, same files (stretch) | 1.70 | 198 |\n\nOne run on a 14-thread laptop with 34 GB of memory. Your numbers will differ; the order will not.","notes":"Measured with U.measure, which samples the process's resident memory every few milliseconds (tracemalloc would miss memory held by Arrow and Polars). Single runs, not averages: say so. The point is the shape: the eager script's peak grows with the lake; the streaming engine's does not. On a laptop with 8 GB the eager script at full size is close to failing.","minutes":null,"lo":["LO2"]},{"id":"same-result-first","n":9,"title":"A faster query with another answer is a bug","kind":"content","session":1,"hash":"95910ae1","md":"#### [day2#same-result-first] A faster query with another answer is a bug\n\n*Lab 2.1 · step 4*\n\n- Compare every key and value, with a tolerance stated for floats.\n- Watch joins: an inner join on a filtered side silently drops rows.\n- Watch nulls: `mean` skips them in both tools, `len` counts them.\n\n- **Already in the output.** Rawdah, September: mean highest creatinine **1.57**, other months about 140. Lab 2.4 finds out why.","notes":"Both scripts reproduce the planted defect faithfully: correctness of a rewrite is not correctness of the data. Point at the 1.57 and promise the answer for session 4.","minutes":null,"lo":["LO2"]},{"id":"streaming","n":10,"title":"Streaming processes the files in batches, so memory stays flat","kind":"content","session":1,"hash":"2e9a3837","md":"#### [day2#streaming] Streaming processes the files in batches, so memory stays flat\n\n*Larger than memory*\n\n1. **Scan** a batch of row groups\n2. **Filter and project** in the batch\n3. **Partial aggregates** kept, batch dropped\n\n> **Not every operation streams.** A global sort or a wide join may fall back to memory. Check the plan, and measure at full size once.","notes":"collect(engine=\"streaming\") in Polars; DuckDB spills to disk when its memory limit is reached. Both are named in the tool slot as interchangeable. Sources: the Polars user guide pages on the lazy API and streaming.","minutes":null,"lo":["LO2"]},{"id":"check-lazy","n":11,"title":"Where the filter goes","kind":"quiz","session":1,"hash":"495470c8","md":"#### [day2#check-lazy] Where the filter goes\n\n*Checkpoint*\n\n**Question:** Your lazy query on the lake is fast but its peak memory is the same as the eager script's. Which change most likely helps?\n\n- A. Rewrite the lake as one unpartitioned Parquet file, so fewer files are opened\n- B. Run it on more CPU cores\n- C. Collect the labs table first, then filter it\n- D. Read the plan: put the month and test filters on the scan and select only needed columns","notes":"Answer: D. C is the eager script in disguise: collect() before filter() loads all 21.6 million laboratory rows.","minutes":null,"lo":["LO2"]},{"id":"lab-2-1","n":12,"title":"From eager to lazy","kind":"lab","session":1,"hash":"f8cbdbd4","md":"#### [day2#lab-2-1] From eager to lazy\n\nLab 2.1 · 25 min\n\nRewrite an eager cleaning script as a lazy query over the partitioned lake and compare time, peak memory and the result.\n\n[D2_1_lazy_columnar.ipynb](https://sdaiaacademy.github.io/ds-405/labs/D2_1_lazy_columnar.ipynb)\n\n- [ ] Run the eager script and measure it (5 min)\n- [ ] Read the lake's partitions and the query plan (5 min)\n- [ ] Write the lazy query (8 min)\n- [ ] Same result, less time and memory (4 min)\n- [ ] Streaming for the full size (3 min)\n- [ ] ✱ Stretch: The same query in DuckDB SQL over the same files","notes":"Walk the room. Usual problems: forgetting hive_partitioning=True (no producer or month columns); joining before filtering by month; comparing float columns for exact equality. In quick mode the times are all under a few seconds: the slide holds the full-size numbers. In Colab, the full lake fits on a CPU runtime.","minutes":null,"lo":[]},{"id":"s2","n":13,"title":"Incremental and idempotent loads","kind":"section","session":2,"hash":"58e5d736","md":"#### [day2#s2] Incremental and idempotent loads\n\n*Session 2*\n\n- Show that an append load is not idempotent\n- Make a daily load idempotent by partition overwrite or merge\n- Prove idempotence by loading one day twice and comparing table hashes","notes":"","minutes":null,"lo":["LO2"]},{"id":"loads-run-twice","n":14,"title":"Every load will run twice one day","kind":"content","session":2,"hash":"6c0c385d","md":"#### [day2#loads-run-twice] Every load will run twice one day\n\n*Real schedules*\n\n- **Retry.** The load wrote, then failed before saying \"done\"; the scheduler runs it again.\n- **Re-delivery.** Ufuq sends 2026-01-03 again with 20 values corrected.\n- **Late correction.** Sidra's 2026-01-05 file corrects 15 results of 2026-01-02.\n\n**Idempotent:** running a load twice leaves the table exactly as running it once.","notes":"All three are planted in data/lake/landing. Ask who has seen a dashboard double for one day after a re-run. Most hands go up.","minutes":null,"lo":["LO2"]},{"id":"append-doubles","n":15,"title":"An append load run twice doubles the day, with no error anywhere","kind":"content","session":2,"hash":"f51919cf","md":"#### [day2#append-doubles] An append load run twice doubles the day, with no error anywhere\n\n*Lab 2.2 · step 1*\n\n**59,994 → 119,988** rows after loading 2026-01-01 a second time\n\n- Every key duplicated; counts and rates downstream double for that day.\n- Nothing fails: the file is valid, the table accepts it.","notes":"Full-size numbers from the course's run. A duplicate check on the business key (encounter, test, round) would catch it after the fact; the fix is a load that cannot produce it.","minutes":null,"lo":["LO2"]},{"id":"fingerprint","n":16,"title":"\"Same table\" means same content, in any order and any files","kind":"content","session":2,"hash":"e01a153e","md":"#### [day2#fingerprint] \"Same table\" means same content, in any order and any files\n\n*Lab 2.2 · step 2*\n\n```python\n# file: Lab 2.2\ndef table_hash(df):\n    d = df.select(COLS).sort(KEY)          # fixed columns, fixed order\n    return hashlib.sha256(d.write_csv().encode()).hexdigest()[:16]\n```\n\nTwo tables with the same fingerprint hold the same rows. That is the proof the outcome asks for: identical output when a day is re-run.","notes":"Leave out columns that legitimately change between runs (a load timestamp). Here the delivered_day is left out because a re-sent day keeps its date anyway. U.fingerprint in the helper does the same with column hashes, faster on big tables.","minutes":null,"lo":["LO2"]},{"id":"partition-overwrite","n":17,"title":"Overwrite the day's partition: a re-run replaces, never adds","kind":"content","session":2,"hash":"8b6c0df7","md":"#### [day2#partition-overwrite] Overwrite the day's partition: a re-run replaces, never adds\n\n*Lab 2.2 · step 3*\n\n```python\n# file: Lab 2.2\ndf.write_delta(table, mode=\"overwrite\",\n    delta_write_options={\"predicate\": f\"delivered_day = '{day}'\",\n                         \"partition_by\": [\"delivered_day\"]})\n```\n\n> **Its limit.** Days 1 to 5 by overwrite: 299,991 rows, **15 duplicate keys**: Sidra's corrections landed in day 5's partition, the originals stayed in day 2's.","notes":"Delta Lake's overwrite with a predicate rewrites only the matching rows in one atomic commit. Ufuq's re-sent day is handled: the newer file replaces the day.","minutes":null,"lo":["LO2"]},{"id":"merge-on-key","n":18,"title":"Merge on the business key: corrections replace what they correct","kind":"content","session":2,"hash":"aeb63805","md":"#### [day2#merge-on-key] Merge on the business key: corrections replace what they correct\n\n*Lab 2.2 · step 4*\n\n```python\n# file: Lab 2.2\nDeltaTable(table).merge(df.to_arrow(),\n    predicate=\"t.encounter_id = s.encounter_id AND t.test_code = s.test_code \"\n              \"AND t.result_seq = s.result_seq\",\n    source_alias=\"s\", target_alias=\"t\") \\\n  .when_matched_update_all().when_not_matched_insert_all().execute()\n```\n\nDays 1 to 5 by merge: 299,976 rows, **0 duplicate keys**.","notes":"The business key is what the producer means by \"the same result\": encounter, test and round. A key that is too narrow merges different results; too wide, and corrections insert instead of update. The contract should name the key.","minutes":null,"lo":["LO2"]},{"id":"proof-twice","n":19,"title":"The proof: every day loaded twice gives the same fingerprint","kind":"content","session":2,"hash":"54647bf6","md":"#### [day2#proof-twice] The proof: every day loaded twice gives the same fingerprint\n\n*Lab 2.2 · step 5*\n\n- once: days 1, 2, 3, 4, 5 → `fa71c591dcabaeb1`\n- twice: days 1 to 5, again 1 to 5, and day 3 a third time → `fa71c591dcabaeb1`\n- result: identical output when a day is re-run\n\n> **Order still matters.** Replaying day 2 after day 5 puts the old values back until day 5 is replayed. Real pipelines compare a delivery version before updating.","notes":"Full-size fingerprints from the course's run. The note is honest about the limit of \"update all\": in the twice-run, the second pass over day 2 reverts Sidra's corrections and the second pass over day 5 restores them. A when_matched_update with a condition on a delivery sequence number fixes it; it is a good capstone refinement.","minutes":null,"lo":["LO2"]},{"id":"check-idempotent","n":20,"title":"Which load survives Sidra?","kind":"quiz","session":2,"hash":"f5e34f4d","md":"#### [day2#check-idempotent] Which load survives Sidra?\n\n*Checkpoint*\n\n**Question:** Sidra's delivery on day 5 corrects results first delivered on day 2. Which load leaves exactly one row per result, holding the corrected value?\n\n- A. Append each day's file\n- B. Merge each day's file on encounter, test and round\n- C. Overwrite each day's partition\n- D. Append, then drop rows that are identical in every column","notes":"Answer: B. D is a common trap: a corrected row differs in its value, so it is not an identical duplicate.","minutes":null,"lo":["LO2"]},{"id":"lab-2-2","n":21,"title":"Load one day twice","kind":"lab","session":2,"hash":"cc5d511b","md":"#### [day2#lab-2-2] Load one day twice\n\nLab 2.2 · 25 min\n\nMake the daily laboratory load idempotent and prove it by loading one day twice, including a day the producer delivered again with corrections.\n\n[D2_2_idempotent_load.ipynb](https://sdaiaacademy.github.io/ds-405/labs/D2_2_idempotent_load.ipynb)\n\n- [ ] The append load and its duplicates (5 min)\n- [ ] A table fingerprint (4 min)\n- [ ] Idempotent: overwrite the day's partition (6 min)\n- [ ] Corrections: merge on the business key (6 min)\n- [ ] Load every day twice and compare (4 min)\n- [ ] ✱ Stretch: Keep a load log so a day is skipped when its file has not changed","notes":"Walk the room. Usual problems: an overwrite without a predicate (it replaces the whole table: the fingerprint test catches it); a merge predicate missing one key column (the 15 corrections insert); hashing a table that still has a load timestamp column. On Windows, keep the course folder short: Delta file names are long.","minutes":null,"lo":[]},{"id":"s3","n":22,"title":"Tables with history","kind":"section","session":3,"hash":"a99ef75e","md":"#### [day2#s3] Tables with history\n\n*Session 3*\n\n- Read an earlier version of a table by version number\n- Rebuild an analysis set exactly from the recorded version\n- Explain what retention and vacuuming do to time travel","notes":"","minutes":null,"lo":["LO2"]},{"id":"reproduce-question","n":23,"title":"\"Can you reproduce exactly what the board saw in January?\"","kind":"content","session":3,"hash":"073acd1c","md":"#### [day2#reproduce-question] \"Can you reproduce exactly what the board saw in January?\"\n\n*The board's question*\n\n- Since then, producers corrected 2% of December discharge dates.\n- Rawdah delivered late December encounters.\n- Today's table gives different December figures.\n\n- **Without history.** You rebuild from backups, if any, and hope nothing else changed.","notes":"Dr. Fadwa Al-Qassabi's question is the reproducibility promise every release makes. Lab 2.3's setup builds the table with four versions from the lake.","minutes":null,"lo":["LO2"]},{"id":"table-formats","n":24,"title":"A table format adds a log of commits to files: every commit is a version","kind":"content","session":3,"hash":"11bc03ec","md":"#### [day2#table-formats] A table format adds a log of commits to files: every commit is a version\n\n*Open table formats*\n\n- **Delta Lake.** A JSON log beside the Parquet files. Used in the labs through delta-rs: no Java needed.\n- **Apache Iceberg.** Snapshots with metadata files; time travel by snapshot id.\n- **DuckLake.** The catalog in a SQL database; snapshots and time travel.\n\nSame ideas in all three: atomic commits, versions, time travel, schema evolution.","notes":"Interchangeable examples of the slot. Facts from each project's own site this month: DuckLake keeps its metadata in a SQL database (PostgreSQL, MySQL, SQLite or DuckDB) and supports snapshots and time travel; Iceberg queries with FOR VERSION AS OF a snapshot id. Check versions before the cohort.","minutes":null,"lo":["LO2"]},{"id":"history-log","n":25,"title":"Four commits, four versions of December","kind":"content","session":3,"hash":"5748134c","md":"#### [day2#history-log] Four commits, four versions of December\n\n*Lab 2.3 · step 1*\n\n| Version | Operation | What happened |\n| --- | --- | --- |\n| 0 | WRITE | October and November loaded |\n| 1 | WRITE (append) | December arrives; the board's figures are built here |\n| 2 | MERGE | 2% of December discharges corrected |\n| 3 | WRITE (append) | Rawdah's late December encounters |","notes":"Printed from DeltaTable.history() in the lab. Ask: if the analysis had not recorded \"version 1\", how would you find it? By timestamps, if you trust them, and only if nothing was vacuumed.","minutes":null,"lo":["LO2"]},{"id":"record-version","n":26,"title":"Record the version with the analysis, and the fingerprint of what it produced","kind":"content","session":3,"hash":"44305d84","md":"#### [day2#record-version] Record the version with the analysis, and the fingerprint of what it produced\n\n*Lab 2.3 · step 2*\n\n```json\n// file: analysis run record\n{\"analysis\": \"december_discharges\", \"table\": \"curated/encounters\",\n \"version\": 1, \"rows\": 15, \"fingerprint\": \"2b4a6dfab81fa30c\"}\n```\n\nTwo fields make the figures reproducible: the version read and the fingerprint written.","notes":"The fingerprint is from the course's full-size run; quick mode gives another one. The capstone README reports the table versions behind every number it states.","minutes":null,"lo":["LO2"]},{"id":"rebuild-identical","n":27,"title":"Read version 1, rebuild, compare: identical; today: every cell moved","kind":"content","session":3,"hash":"50778e3f","md":"#### [day2#rebuild-identical] Read version 1, rebuild, compare: identical; today: every cell moved\n\n*Lab 2.3 · steps 3 and 4*\n\n```python\n# file: Lab 2.3\nthen = analysis_set(pl.read_delta(TABLE, version=1))\nU.fingerprint(then) == RUN[\"fingerprint\"]   # True\n```\n\n**15 of 15** producer and ward cells differ between version 1 and today (full size)","notes":"In quick mode 10 of 15 cells change; at full size all 15, because 2% of 100,000 December encounters touches every cell. Rawdah's cells change in discharges as well as days: only Rawdah sent late rows.","minutes":null,"lo":["LO2"]},{"id":"vacuum","n":28,"title":"Vacuum deletes the files old versions need","kind":"content","session":3,"hash":"90747d9d","md":"#### [day2#vacuum] Vacuum deletes the files old versions need\n\n*Lab 2.3 · step 5*\n\n- vacuum: retention 0 hours on a copy\n- read v1: `FileNotFoundError`\n\n- Delta's default retention is seven days.\n- Set it to the reproducibility promise, or snapshot each release with its fingerprint.\n- The board and the data owner decide the promise, not the platform alone.","notes":"Run on a copy in the lab, never on the shared table. The retention is also a privacy question: old versions keep corrected or deleted personal data alive. Destroying data on request under the PDPL means old versions too.","minutes":null,"lo":["LO2"]},{"id":"check-history","n":29,"title":"Reproduce a release","kind":"quiz","session":3,"hash":"e07db533","md":"#### [day2#check-history] Reproduce a release\n\n*Checkpoint*\n\n**Question:** A release from last March must be reproduced. The run log names the table but not the version, and the table is vacuumed weekly with seven days' retention. What is true?\n\n- A. Read the table as of last March's timestamp\n- B. It cannot be rebuilt exactly from the table; only a kept snapshot of the release would prove it\n- C. Rebuild from today's table: corrections only improve it\n- D. Restore the table to March and rerun","notes":"Answer: B. The capstone asks participants to commit the fingerprints of what they release for exactly this reason.","minutes":null,"lo":["LO2"]},{"id":"lab-2-3","n":30,"title":"Rebuild last month","kind":"lab","session":3,"hash":"1a048ea6","md":"#### [day2#lab-2-3] Rebuild last month\n\nLab 2.3 · 25 min\n\nRebuild last month's analysis set from the table snapshot it was built on, prove it is identical, and measure what later corrections changed.\n\n[D2_3_table_snapshots.ipynb](https://sdaiaacademy.github.io/ds-405/labs/D2_3_table_snapshots.ipynb)\n\n- [ ] Read the table's history (4 min)\n- [ ] The analysis run record (4 min)\n- [ ] Rebuild from the recorded version (7 min)\n- [ ] Prove it identical, then diff with today (6 min)\n- [ ] What vacuuming would break (4 min)\n- [ ] ✱ Stretch: Restore the table to the recorded version and compare","notes":"Walk the room. Usual problems: read_delta without version (reads today's table); comparing analysis sets with == on DataFrames (use the fingerprint); running vacuum on the lab's table instead of the copy (rerun the setup cell, it rebuilds the table).","minutes":null,"lo":[]},{"id":"s4","n":31,"title":"Gates and lineage at scale","kind":"section","session":4,"hash":"4227acb1","md":"#### [day2#s4] Gates and lineage at scale\n\n*Session 4*\n\n- Run blocking rules per partition and quarantine the failures\n- Emit OpenLineage run events for every job run\n- Trace a defect in an output to its producer and partition","notes":"","minutes":null,"lo":["LO2"]},{"id":"dip","n":32,"title":"Median creatinine fell by a quarter in September, and nobody knows why","kind":"content","session":4,"hash":"c3aebde0","md":"#### [day2#dip] Median creatinine fell by a quarter in September, and nobody knows why\n\n*Yesterday's figure*\n\n| Item | Value |\n| --- | --- |\n| 2025-08 | 89.8 |\n| 2025-09 | 66.5 |\n| 2025-10 | 90.1 |\n\nMedian creatinine, µmol/L, all producers, from yesterday's run without gates (full lake).","notes":"Ask for hypotheses before showing anything else: a season, a new lab analyser, a coding change, a producer. Write them on the board; session 4 tests them with lineage.","minutes":null,"lo":["LO2"]},{"id":"gate-per-partition","n":33,"title":"Gate each partition, so one bad delivery stops alone","kind":"content","session":4,"hash":"e4373b13","md":"#### [day2#gate-per-partition] Gate each partition, so one bad delivery stops alone\n\n*Lab 2.4 · step 1*\n\n- The contract's ranges, per test: creatinine 20 to 1,500 µmol/L, glucose 1 to 60 mmol/L.\n- A partition fails if more than 0.5% of its results fall outside.\n- One lazy query gates all 36 partitions.\n\n| Partition | Rows | Invalid |\n| --- | --- | --- |\n| RWD, 2025-09 | 600,012 | 100,002 (16.7%) |\n| other 35 |  | 0 |","notes":"Full-size numbers. 16.7% is exactly one test of six: every creatinine result in the partition is out of range. A whole-load gate would have stopped all three producers' data for the month; a gate per partition publishes 35 and quarantines one.","minutes":null,"lo":["LO2"]},{"id":"quarantine","n":34,"title":"Publish what passed, quarantine what failed, and say what is missing","kind":"content","session":4,"hash":"ed605cdf","md":"#### [day2#quarantine] Publish what passed, quarantine what failed, and say what is missing\n\n*Lab 2.4 · step 2*\n\n1. **35 partitions** published\n2. **RWD 2025-09** quarantined until Rawdah re-sends\n3. **September figure** 90.2, from 2 producers, flagged","notes":"The rebuilt figure for September is 90.2 from Sidra and Ufuq only. A figure that silently drops a producer is the same bias as Ufuq's stale delivery on Day 1: publish the count of producers with the figure.","minutes":null,"lo":["LO2"]},{"id":"openlineage","n":35,"title":"A lineage event says which run read what and wrote what","kind":"content","session":4,"hash":"23b6d796","md":"#### [day2#openlineage] A lineage event says which run read what and wrote what\n\n*Lab 2.4 · step 3*\n\n```json\n// file: artifacts/D2_4/today.jsonl\n{\"eventType\": \"FAIL\",\n \"job\": {\"namespace\": \"rimah\", \"name\": \"rimah.labs_gate\"},\n \"run\": {\"runId\": \"dba00c8e-...\", \"facets\": {\"gate\": {\"invalid\": 100002, \"rows\": 600012}}},\n \"inputs\":  [{\"name\": \"raw/labs/producer=RWD/month=2025-09\"}],\n \"outputs\": [{\"name\": \"quarantine/labs/producer=RWD/month=2025-09\"}]}\n```","notes":"OpenLineage's object model: run events (START, then COMPLETE or FAIL) naming a job, a run and its input and output datasets, with facets for anything else. Marquez is the reference backend that stitches events into a graph; most orchestrators emit them too. The lab writes events to a file: no server needed. Source: the OpenLineage object model page.","minutes":null,"lo":["LO2"]},{"id":"trace-back","n":36,"title":"Walk the events backwards from the figure to the partition","kind":"content","session":4,"hash":"188a9405","md":"#### [day2#trace-back] Walk the events backwards from the figure to the partition\n\n*Lab 2.4 · step 4*\n\n- start: `analysis/monthly_creatinine`\n- written by: `rimah.monthly_creatinine`: 36 curated partitions\n- written by: `rimah.labs_publish`: 36 raw partitions; September: 3\n- medians: SDR 89.97 · UFQ 90.51 · **RWD 1.02**\n- traced: Rawdah, September: creatinine in mg/dL under a µmol/L label","notes":"The upstream walk finds 72 datasets in yesterday's events; filtering by month leaves three raw partitions; their medians name the producer. The same unit flip as Day 1, now inside a partition. Ihab, Kinan and Ashjan each get a different message: only Ashjan's says \"re-send September\".","minutes":null,"lo":["LO2"]},{"id":"check-gates","n":37,"title":"One partition fails","kind":"quiz","session":4,"hash":"169fb895","md":"#### [day2#check-gates] One partition fails\n\n*Checkpoint*\n\n**Question:** Rawdah's September laboratory partition fails its gate. The study's monthly report is due today. What does the pipeline do?\n\n- A. Stop the whole load until Rawdah re-sends\n- B. Publish it with a warning in the log\n- C. Publish the 35 partitions that passed, quarantine Rawdah's September, and flag September as two producers\n- D. Divide the partition's values by 88.42 and publish","notes":"Answer: C. D is tempting because the cause is obvious here: but it must be confirmed by Rawdah, and the fix belongs in a re-sent partition, not a silent patch.","minutes":null,"lo":["LO2"]},{"id":"lab-2-4","n":38,"title":"Gates and lineage per partition","kind":"lab","session":4,"hash":"075fb907","md":"#### [day2#lab-2-4] Gates and lineage per partition\n\nLab 2.4 · 25 min\n\nRun blocking rules per partition of the lake, quarantine what fails, emit lineage events, and trace a seeded defect to its producer and partition.\n\n[D2_4_gates_lineage.ipynb](https://sdaiaacademy.github.io/ds-405/labs/D2_4_gates_lineage.ipynb)\n\n- [ ] Contract rules as per-partition gates (7 min)\n- [ ] Quarantine and publish the rest (5 min)\n- [ ] Emit OpenLineage run events (6 min)\n- [ ] Trace the defect back through the events (7 min)\n- [ ] ✱ Stretch: A gate on the distribution, not only on the values","notes":"Walk the room. Usual problems: gating the whole table instead of grouping by producer and month; integer ranges that break the join (the lab casts them to float); following events forwards instead of backwards. The stretch's distribution gate catches a change of scale that stays inside the range.","minutes":null,"lo":[]},{"id":"wrap-up","n":39,"title":"Three things to keep","kind":"content","session":4,"hash":"ef2a0cef","md":"#### [day2#wrap-up] Three things to keep\n\n*Day 2 · wrap-up*\n\n- **Read less.** Partitions, columns and lazy plans: 2.7 GB became 112 MB for the same answer.\n- **Load twice, same table.** Merge on the business key; prove it with a fingerprint.\n- **Versions and gates.** Record the version you read; gate per partition; emit lineage so a figure can be traced.","notes":"Ask each table which of today's three their current pipeline lacks. The capstone's \"contracts and pipeline\" criterion checks all three.","minutes":null,"lo":[]},{"id":"next","n":40,"title":"Day 3: Synthesise and attack","kind":"content","session":4,"hash":"36e9e2a9","md":"#### [day2#next] Day 3: Synthesise and attack\n\n*Next*\n\nThe university wants a copy. Tomorrow you generate synthetic patients and encounters, measure whether the readmission model still works on them, and attack them to see what leaks.","notes":"Day 3 uses the study tables in labs/data/study, committed with the course: no lake needed. Delete labs/artifacts if disks are full; the Day 2 lake can be deleted too (rimah_lake.py writes it again).","minutes":null,"lo":[]}],"activities":[{"id":"review-day1-q1","slide":"review-day1","type":"single","prompt":"Rawdah tells you that from next month its weight column will hold kilograms, under the same name. What do you do first?","options":[{"key":"A","text":"Classify it under the policy as a breaking unit change: new major version, notice, a parallel run"},{"key":"B","text":"Thank them and remove the unit clause from the contract the same day"},{"key":"C","text":"Add an if-statement on the date in the study's pipeline"},{"key":"D","text":"Nothing: the range rule will catch any problem"}],"correct":[0],"explanation":"Same name, new unit is the change no schema diff shows. The policy treats it as breaking so that every consumer moves together.","misconceptions":["","Assumes a change towards the standard unit cannot hurt, when every consumer that converts pounds now divides kilograms","Moves the fix into one consumer's code where the other consumers never see it","Trusts a range rule that pounds and kilograms both pass"],"lo":["LO1"]},{"id":"check-lazy-q1","slide":"check-lazy","type":"single","prompt":"Your lazy query on the lake is fast but its peak memory is the same as the eager script's. Which change most likely helps?","options":[{"key":"A","text":"Rewrite the lake as one unpartitioned Parquet file, so fewer files are opened"},{"key":"B","text":"Run it on more CPU cores"},{"key":"C","text":"Collect the labs table first, then filter it"},{"key":"D","text":"Read the plan: put the month and test filters on the scan and select only needed columns"}],"correct":[3],"explanation":"Memory follows what is read. If the plan shows a full projection or no selection on the scan, the query reads everything; pushing filters and columns down is what saves memory.","misconceptions":["Removes the partitions that let the scan skip whole files, so even more is read","Adds threads to a problem of bytes read","Caches the very data that should never have been loaded",""],"lo":["LO2"]},{"id":"check-idempotent-q1","slide":"check-idempotent","type":"single","prompt":"Sidra's delivery on day 5 corrects results first delivered on day 2. Which load leaves exactly one row per result, holding the corrected value?","options":[{"key":"A","text":"Append each day's file"},{"key":"B","text":"Merge each day's file on encounter, test and round"},{"key":"C","text":"Overwrite each day's partition"},{"key":"D","text":"Append, then drop rows that are identical in every column"}],"correct":[1],"explanation":"Only matching on the business key finds the earlier row a correction refers to, wherever it was loaded.","misconceptions":["Repeats every row each time the day is loaded","","Replaces day 5's partition but leaves the originals in day 2's","Removes duplicates by every column, so the corrected and original rows both stay"],"lo":["LO2"]},{"id":"check-history-q1","slide":"check-history","type":"single","prompt":"A release from last March must be reproduced. The run log names the table but not the version, and the table is vacuumed weekly with seven days' retention. What is true?","options":[{"key":"A","text":"Read the table as of last March's timestamp"},{"key":"B","text":"It cannot be rebuilt exactly from the table; only a kept snapshot of the release would prove it"},{"key":"C","text":"Rebuild from today's table: corrections only improve it"},{"key":"D","text":"Restore the table to March and rerun"}],"correct":[1],"explanation":"Time travel needs both the log entry and the data files; vacuum removed the files. Record versions and keep release snapshots.","misconceptions":["Assumes time travel works without the files the old version needs","","Today's data includes every correction since March","Restoring needs the same files that vacuum removed"],"lo":["LO2"]},{"id":"check-gates-q1","slide":"check-gates","type":"single","prompt":"Rawdah's September laboratory partition fails its gate. The study's monthly report is due today. What does the pipeline do?","options":[{"key":"A","text":"Stop the whole load until Rawdah re-sends"},{"key":"B","text":"Publish it with a warning in the log"},{"key":"C","text":"Publish the 35 partitions that passed, quarantine Rawdah's September, and flag September as two producers"},{"key":"D","text":"Divide the partition's values by 88.42 and publish"}],"correct":[2],"explanation":"Gating per partition keeps a bad delivery from blocking good ones, and the flag keeps the figure honest about what it contains.","misconceptions":["Stops good data from two producers and eleven months because of one partition","Publishes known bad values into the study","","Repairs a producer's data downstream without the producer confirming the cause"],"lo":["LO2"]}],"ai":{"context":{"course":"../context/course.md","courseJs":"../context/course.js","day":"day2.md","llms":"../llms.txt"},"tasks":[],"tools":[]},"bridge":{"allowedOrigins":[]},"features":{},"strings":{}}</script>
+<script src="../_engine/academy.js"></script>
+</body>
+</html>

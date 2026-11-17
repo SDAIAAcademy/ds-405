@@ -1,0 +1,1909 @@
+{
+  "format": "classpulse-bank",
+  "version": 1,
+  "course": {
+    "name": "Data Preparation at Scale: Contracts, Synthetic Data and Privacy",
+    "los": [
+      {
+        "code": "LO1",
+        "description": "Design shared data contracts, a pseudonymous linkage key and a breaking-change policy for a feed with several producers, given three producers whose extracts disagree on schema, codes and units"
+      },
+      {
+        "code": "LO2",
+        "description": "Implement an incremental, idempotent preparation pipeline over partitioned columnar tables with quality gates, given 30 million synthetic rows on a laptop"
+      },
+      {
+        "code": "LO3",
+        "description": "Evaluate a synthetic dataset for fidelity, analytical utility and disclosure risk, given two generators fitted to related patient and encounter tables"
+      },
+      {
+        "code": "LO4",
+        "description": "Compute differentially private statistics under a budget shared across repeated releases, given twelve monthly statistics"
+      },
+      {
+        "code": "LO5",
+        "description": "Select a privacy-enhancing method for each data request by comparing protection, utility and cost, given four requests, from an internal analyst to an external university"
+      },
+      {
+        "code": "LO6",
+        "description": "Decide whether to release a dataset and on what conditions, and defend the decision, given the university request and the measured results"
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "check-units-q1",
+      "type": "single",
+      "prompt": "All three producers' weight columns pass \"a number between 1 and 500\". What do you do before pooling them?",
+      "options": [
+        "Pool them: the rule passed for every producer",
+        "Divide Rawdah's values by 2.2 in the study notebook",
+        "Compare the distributions by producer and confirm the unit with each producer",
+        "Drop weight from the study"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "A unit difference passes type and range checks. The distribution shows it, the producer confirms it, and the factor goes into the contract for every consumer.",
+      "misconceptions": [
+        "Trusts a range wide enough to hold pounds and kilograms alike",
+        "Fixes a symptom in one consumer's code and tells nobody",
+        "",
+        "Throws away good data because one producer differs"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 11
+    },
+    {
+      "id": "check-contract-q1",
+      "type": "single",
+      "prompt": "Ufuq confirms its creatinine is in mg/dL. Where should the factor 88.42 be written?",
+      "options": [
+        "In the contract, as a unit clause for Ufuq's creatinine",
+        "In the preparation pipeline's cleaning step",
+        "In Ufuq's hospital system, by changing its unit",
+        "In the study's analysis notebook, with a comment"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "In the contract the producer and every consumer read the same rule, and changing it becomes a versioned change with notice.",
+      "misconceptions": [
+        "",
+        "Hides the rule in one pipeline where other consumers never see it",
+        "Pushes a consumer's need onto the producer's own system",
+        "Turns a fixed rule into a habit that each analyst may forget"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 21
+    },
+    {
+      "id": "check-hash-q1",
+      "type": "single",
+      "prompt": "Ufuq offers to send SHA-256 of each national identifier instead of the identifier. What do you answer?",
+      "options": [
+        "Accept: hashed data is anonymous",
+        "Accept if they remove spaces first",
+        "Ask for the plain identifier and hash it centrally",
+        "Ask for a keyed hash of the normalised identifier, with a project key the consortium does not hold"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "A plain hash of a ten-digit identifier is reversed in hours on one core. A secret key held elsewhere makes the pseudonym impossible to recompute for the consortium.",
+      "misconceptions": [
+        "Treats a reversible hash as anonymisation",
+        "Improves only the format while the space stays small enough to enumerate",
+        "Moves the identifier, not the risk: the consortium would then hold identities",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 30
+    },
+    {
+      "id": "check-breaking-q1",
+      "type": "single",
+      "prompt": "Rawdah plans to rename weight_lb to weight and send kilograms. Its engineer calls it a minor clean-up. How do you classify it?",
+      "options": [
+        "Minor: one column, same data",
+        "Breaking: a rename and a unit change; major version, notice and a parallel run",
+        "Additive: the new unit is better",
+        "Whatever Rawdah decides: it owns the data"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Every consumer that reads weight_lb breaks, and any that converts pounds now gets wrong numbers. Both are breaking under the policy.",
+      "misconceptions": [
+        "Judges a change by its size in the code, not by its effect on consumers",
+        "",
+        "Assumes the unit change is good news, but any consumer converting pounds now divides kilograms",
+        "Lets the producer's own judgement replace the agreed policy"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 39
+    },
+    {
+      "id": "review-day1-q1",
+      "type": "single",
+      "prompt": "Rawdah tells you that from next month its weight column will hold kilograms, under the same name. What do you do first?",
+      "options": [
+        "Classify it under the policy as a breaking unit change: new major version, notice, a parallel run",
+        "Thank them and remove the unit clause from the contract the same day",
+        "Add an if-statement on the date in the study's pipeline",
+        "Nothing: the range rule will catch any problem"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Same name, new unit is the change no schema diff shows. The policy treats it as breaking so that every consumer moves together.",
+      "misconceptions": [
+        "",
+        "Assumes a change towards the standard unit cannot hurt, when every consumer that converts pounds now divides kilograms",
+        "Moves the fix into one consumer's code where the other consumers never see it",
+        "Trusts a range rule that pounds and kilograms both pass"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 3
+    },
+    {
+      "id": "check-lazy-q1",
+      "type": "single",
+      "prompt": "Your lazy query on the lake is fast but its peak memory is the same as the eager script's. Which change most likely helps?",
+      "options": [
+        "Rewrite the lake as one unpartitioned Parquet file, so fewer files are opened",
+        "Run it on more CPU cores",
+        "Collect the labs table first, then filter it",
+        "Read the plan: put the month and test filters on the scan and select only needed columns"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Memory follows what is read. If the plan shows a full projection or no selection on the scan, the query reads everything; pushing filters and columns down is what saves memory.",
+      "misconceptions": [
+        "Removes the partitions that let the scan skip whole files, so even more is read",
+        "Adds threads to a problem of bytes read",
+        "Caches the very data that should never have been loaded",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 11
+    },
+    {
+      "id": "check-idempotent-q1",
+      "type": "single",
+      "prompt": "Sidra's delivery on day 5 corrects results first delivered on day 2. Which load leaves exactly one row per result, holding the corrected value?",
+      "options": [
+        "Append each day's file",
+        "Merge each day's file on encounter, test and round",
+        "Overwrite each day's partition",
+        "Append, then drop rows that are identical in every column"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Only matching on the business key finds the earlier row a correction refers to, wherever it was loaded.",
+      "misconceptions": [
+        "Repeats every row each time the day is loaded",
+        "",
+        "Replaces day 5's partition but leaves the originals in day 2's",
+        "Removes duplicates by every column, so the corrected and original rows both stay"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 20
+    },
+    {
+      "id": "check-history-q1",
+      "type": "single",
+      "prompt": "A release from last March must be reproduced. The run log names the table but not the version, and the table is vacuumed weekly with seven days' retention. What is true?",
+      "options": [
+        "Read the table as of last March's timestamp",
+        "It cannot be rebuilt exactly from the table; only a kept snapshot of the release would prove it",
+        "Rebuild from today's table: corrections only improve it",
+        "Restore the table to March and rerun"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Time travel needs both the log entry and the data files; vacuum removed the files. Record versions and keep release snapshots.",
+      "misconceptions": [
+        "Assumes time travel works without the files the old version needs",
+        "",
+        "Today's data includes every correction since March",
+        "Restoring needs the same files that vacuum removed"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 29
+    },
+    {
+      "id": "check-gates-q1",
+      "type": "single",
+      "prompt": "Rawdah's September laboratory partition fails its gate. The study's monthly report is due today. What does the pipeline do?",
+      "options": [
+        "Stop the whole load until Rawdah re-sends",
+        "Publish it with a warning in the log",
+        "Publish the 35 partitions that passed, quarantine Rawdah's September, and flag September as two producers",
+        "Divide the partition's values by 88.42 and publish"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Gating per partition keeps a bad delivery from blocking good ones, and the flag keeps the figure honest about what it contains.",
+      "misconceptions": [
+        "Stops good data from two producers and eleven months because of one partition",
+        "Publishes known bad values into the study",
+        "",
+        "Repairs a producer's data downstream without the producer confirming the cause"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 37
+    },
+    {
+      "id": "review-day2-q1",
+      "type": "single",
+      "prompt": "Sidra corrects 15 creatinine results three days after sending them. Your daily load overwrites the delivery day's partition. What does the curated table hold afterwards?",
+      "options": [
+        "The corrected values only",
+        "Both the original and the corrected results: 15 duplicate keys",
+        "Only the latest day, everything else overwritten",
+        "An error: the keys collide"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Partition overwrite makes a re-run safe but files the correction under the day it arrived. Only a merge on the business key replaces what it corrects: Lab 2.2 counted 15 duplicate keys before the merge and 0 after.",
+      "misconceptions": [
+        "Assumes overwrite by day reaches rows that belong to an earlier day",
+        "",
+        "Confuses a predicate overwrite with a full table rewrite",
+        "Expects the table to enforce a key it was never given"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 3
+    },
+    {
+      "id": "check-options-q1",
+      "type": "single",
+      "prompt": "The ministry asks for the number of readmissions per region and month, published on a public dashboard. Which option fits?",
+      "options": [
+        "A synthetic file the ministry counts itself",
+        "A de-identified extract",
+        "A query service on the real data, with small counts protected before publication",
+        "The exact counts from the real data, as they are"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO5"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Counts must come from the real data; but a public count of 1 or 2 can identify someone, so outputs are protected too. Day 4 session 2 does this with a privacy budget.",
+      "misconceptions": [
+        "Gives counts that are model draws, wrong most in the small cells a dashboard shows",
+        "Hands patient-level rows to someone who needs only totals",
+        "",
+        "Treats publication as private because no rows leave"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 11
+    },
+    {
+      "id": "check-relation-q1",
+      "type": "single",
+      "prompt": "A colleague fits one generator to patients and another to encounters, then assigns each synthetic encounter to a random synthetic patient. What breaks first?",
+      "options": [
+        "Who comes back: stays per patient no longer depend on the patient's conditions",
+        "Referential integrity: encounters with no patient",
+        "The marginal distribution of each column",
+        "The overall readmission rate"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Random parents keep every column and every link, but heart-failure patients get 2.10 stays instead of 3.06, and some patients get none.",
+      "misconceptions": [
+        "",
+        "Integrity can hold perfectly while the relation is lost",
+        "Each table on its own is generated as before",
+        "Assumes the outcome's average changes when only its link to patients is lost"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 18
+    },
+    {
+      "id": "check-utility-q1",
+      "type": "single",
+      "prompt": "A generator's report shows every column's distribution within 2% of the real one. The university asks whether its readmission model will work. What do you answer?",
+      "options": [
+        "Yes: the distributions match",
+        "Train on synthetic and test on the real training data",
+        "Not known yet: train on synthetic, test on a real holdout, and compare the study's estimates",
+        "No synthetic data can support a model"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The independent baseline matches every marginal and still shrinks the heart-failure effect from 2.07 to 1.16.",
+      "misconceptions": [
+        "Takes column-by-column similarity as evidence for relationships",
+        "Tests on data the generator learnt from, which rewards copying",
+        "",
+        "Dismisses a measurable question"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 24
+    },
+    {
+      "id": "check-attack-q1",
+      "type": "single",
+      "prompt": "A membership-inference test on a synthetic encounter table gives an AUC of 0.51; on the patient table, 0.88. What do you conclude?",
+      "options": [
+        "The release is safe on average",
+        "Patient attributes are coarse, so the 0.88 does not matter",
+        "The encounter test failed and should be re-run",
+        "The patient table leaks its training patients; the release fails until it is fixed"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "A release passes only if every table passes: an attacker uses the weakest one, and the tables link through the identifier.",
+      "misconceptions": [
+        "Averages away the table that leaks",
+        "Assumes coarse attributes cannot identify anyone",
+        "Reads an AUC near 0.5 as a failure of the attack rather than as protection",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 31
+    },
+    {
+      "id": "review-day3-q1",
+      "type": "single",
+      "prompt": "A new generator gives a TSTR AUC of 0.706, equal to the model trained on real data, and a membership AUC of 0.97 on encounters. What do you report?",
+      "options": [
+        "The best generator so far: release it",
+        "Acceptable on average across the two measures",
+        "The attack is unreliable when utility is this high",
+        "It copies its training encounters: it fails, and its perfect utility is part of the evidence"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The vendor's file showed exactly this pattern: zero fidelity gap, the real AUC, and members found with certainty.",
+      "misconceptions": [
+        "Reads perfect utility as success without the attack that contradicts it",
+        "Averages a leaking table with a safe one",
+        "Blames the attack for the result it was built to detect",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 3
+    },
+    {
+      "id": "check-longitudinal-q1",
+      "type": "single",
+      "prompt": "An extract of patients with all their stays shows 4% of patients unique on sex, year of birth and region. What do you tell the release board?",
+      "options": [
+        "The risk is low: 4%",
+        "The 4% ignores the stays: with two known stays nearly every patient with two is unique",
+        "Release only the first two stays of each patient and the risk is solved",
+        "The study identifiers are pseudonyms, so uniqueness does not matter"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "An adversary's knowledge of stays makes the sequence a quasi-identifier: 96.6% unique at two known stays.",
+      "misconceptions": [
+        "Reports the single-table estimate for a longitudinal release",
+        "",
+        "Assumes removing stays always lowers risk",
+        "Treats pseudonyms as protection against someone who knows the person"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 9
+    },
+    {
+      "id": "check-budget-q1",
+      "type": "single",
+      "prompt": "The ministry's dashboard recomputes every past month each night with fresh noise at ε = 1/12. The ledger is charged only once per month. What happens?",
+      "options": [
+        "Privacy improves: the noise keeps changing",
+        "Nothing: each month is still released at ε = 1/12",
+        "Anyone who averages the nightly values recovers the true counts; the real spend grows every night",
+        "The dashboard fails when the budget runs out"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO4"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Every noisy copy is a release. A year of copies brought January within two patients of the truth.",
+      "misconceptions": [
+        "Thinks fresh noise each night adds protection",
+        "Assumes the budget is a property of the query rather than of the releases",
+        "",
+        "Confuses an accounting error with a software error"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 17
+    },
+    {
+      "id": "check-secagg-q1",
+      "type": "single",
+      "prompt": "Three hospital groups compute a pooled readmission count by secure aggregation and publish it. Which statement is true?",
+      "options": [
+        "The aggregator never sees a site's count, but two sites together can compute the third's from the published total",
+        "No one can learn anything about any site's count",
+        "The published total is approximate because of the masks",
+        "The aggregator must be trusted with every site's count"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO5"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The masks cancel exactly: the output is the true total, and subtraction by those who know the other inputs reveals the last one.",
+      "misconceptions": [
+        "",
+        "Extends protection of the inputs to the published output",
+        "Confuses masking with noise",
+        "Assumes the protocol needs a trusted party to see values"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 24
+    },
+    {
+      "id": "check-decision-q1",
+      "type": "single",
+      "prompt": "The synthetic pair passes every attack. The university's request still lacks its academic authority's written approval. What does the board decide?",
+      "options": [
+        "Approve: the file is safe, so the approval is a formality",
+        "Reject the request permanently",
+        "Conditional approval: nothing moves until the request comes through the institution with written approval, on the form",
+        "Send a de-identified extract instead, which needs no approval"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO6"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "An academic applicant applies through the institution with written approval of its academic authority; the method decides what is released once the request is complete.",
+      "misconceptions": [
+        "Lets measured safety replace a requirement the rules place on the applicant",
+        "Ends the request when its gaps can be fixed",
+        "",
+        "Sends real records to a requester who has not met the rules"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000,
+      "slide": 31
+    },
+    {
+      "id": "q-d1-units-ratio",
+      "type": "single",
+      "prompt": "Sidra's creatinine median is 89.9 and Ufuq's is 1.00. Both columns are numeric and complete. What is the most likely explanation, and what follows?",
+      "options": [
+        "Ufuq's patients have healthier kidneys; pool the values as they are",
+        "Ufuq reports mg/dL; confirm with Ufuq and write the factor 88.42 into the contract",
+        "One of the columns is corrupt; drop creatinine from the study",
+        "The medians differ by chance; compare means instead"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "A ratio near a known unit factor points to a unit difference; the producer confirms it and the contract states the conversion for every consumer.",
+      "misconceptions": [
+        "Reads a unit difference as a clinical difference",
+        "",
+        "Discards a usable field instead of asking the producer",
+        "Treats an 88-fold difference as sampling noise"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d1-dx-join",
+      "type": "single",
+      "prompt": "Rawdah's diagnosis codes look like i50.9 and Ufuq's like I509. A colleague joins all three extracts to a diagnosis lookup on the raw code. What happens?",
+      "options": [
+        "The join fails with an error, so the problem is found at once",
+        "Only codes in the lookup's exact format match, so most Ufuq and Rawdah rows drop out silently",
+        "The database ignores case and dots, so all rows match",
+        "Every row matches, some to the wrong diagnosis"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "An inner join on codes that were not normalised drops what does not match exactly, without any error; the contract's format rule prevents it.",
+      "misconceptions": [
+        "Expects a silent mismatch to raise an error",
+        "",
+        "Assumes joins normalise text",
+        "Confuses missed matches with wrong matches"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d1-freshness",
+      "type": "single",
+      "prompt": "Ufuq's latest delivery passes every column rule, but its newest admission is nine days before the delivery date. The contract allows two. What should the gate do?",
+      "options": [
+        "Block the delivery and ask Ufuq to send a complete extract again",
+        "Accept it: every row is valid",
+        "Accept it and fill the missing days with the average of earlier days",
+        "Accept it and note the gap in the study's limitations"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Freshness is a contract clause: a delivery that stops early biases pooled rates, so the gate blocks it and the producer sends it again.",
+      "misconceptions": [
+        "",
+        "Treats completeness of a period as a property of single rows",
+        "Invents data to hide a gap",
+        "Lets a known bias into the pooled rate when a new delivery is possible"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d1-what-in-contract",
+      "type": "single",
+      "prompt": "Which clause belongs in the shared contract rather than in one consumer's pipeline code?",
+      "options": [
+        "The colour scheme of the study's dashboard",
+        "The study's model settings",
+        "Ufuq's mapping of discharge codes 1 to 4 onto HOME, TRANSFER, DIED and LAMA",
+        "The name of the notebook that reads the feed"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Code maps define what the producer's values mean; written in the contract, every consumer applies the same meaning and a change to it is versioned.",
+      "misconceptions": [
+        "Mixes a consumer's presentation choice with the feed's meaning",
+        "Puts an analysis choice into the producers' agreement",
+        "",
+        "Confuses a consumer's file with the contract"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d1-key-custody",
+      "type": "single",
+      "prompt": "Producers will send HMAC-SHA-256 of the normalised national identifier. Who should hold the key?",
+      "options": [
+        "The consortium's analysts, so they can check matches",
+        "Nobody: generate it once and delete it",
+        "Each producer its own key",
+        "A linkage unit outside the analysis team, which gives the producers one key for this project"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The producers need one shared key to produce matching pseudonyms; keeping it away from the analysts keeps the pseudonyms irreversible for them, and a key per project prevents joins across projects.",
+      "misconceptions": [
+        "Gives the people who see the data the means to re-identify it",
+        "Producers need the same key to compute matching pseudonyms",
+        "Different keys give different pseudonyms, so nothing links",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d1-linkage-report",
+      "type": "single",
+      "prompt": "Adding a second linkage key on name, birth date and sex raised recall from 0.993 to 1.000 and lowered precision from 1.000 to 0.988. What should you report?",
+      "options": [
+        "Only the recall: the study needs every readmission",
+        "Both numbers with counts: 14 pairs recovered, 24 strangers merged, and a proposed rule to filter them",
+        "Only precision: wrong links are unacceptable",
+        "Neither: the truth file is synthetic, so the numbers mean nothing"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Linkage makes two errors that bias the study in different directions; the decision needs both, as counts as well as rates.",
+      "misconceptions": [
+        "Hides the merged histories the second key created",
+        "",
+        "Hides the readmissions the first key misses",
+        "Rejects measurement because the data is synthetic, when the planted truth is exactly what makes it measurable"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d1-hidden-unit",
+      "type": "single",
+      "prompt": "Ufuq replaces column Creatinine_mgdl by Creatinine, whose median is 89.3 where the old one was 1.00. How does the policy classify it?",
+      "options": [
+        "Additive: a new column appeared",
+        "No change: the same measurement under a clearer name",
+        "Breaking: a renamed column and a unit change; a new major version",
+        "Breaking only if the data protection officer objects"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The values show the same measurement in a new unit: a rename and a unit change, both breaking, so the contract moves to a new major version.",
+      "misconceptions": [
+        "Reads the schema diff and not the values",
+        "Misses the unit change hidden by the rename",
+        "",
+        "Confuses the approvers with the classification"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d1-new-code",
+      "type": "single",
+      "prompt": "Why is a new value in a closed code set (Ufuq's discharge code 5) treated as breaking?",
+      "options": [
+        "The study's mapping does not know it, so those rows become null or drop out",
+        "Any change to a producer's system is breaking",
+        "New codes always mean worse data quality",
+        "It is not: new values are always additive"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO1"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "A consumer with a closed list cannot place the new code, so its rows silently leave the analysis; the producer must announce it.",
+      "misconceptions": [
+        "",
+        "Over-classifies changes that consumers do not notice",
+        "Judges the value instead of its effect on consumers",
+        "Ignores that consumers with closed lists lose the rows"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d2-pushdown",
+      "type": "single",
+      "prompt": "A lazy query over the partitioned lake filters on month = '2025-09' and test_code = 'CREAT' and selects two columns. What does the plan let the scan skip?",
+      "options": [
+        "Nothing: lazy only delays the same work",
+        "Only the columns it does not select",
+        "Every partition file whose month is not 2025-09, and every column the query does not need",
+        "Every row group, because the test filter is applied after loading"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Hive partition values prune whole files and projection pushdown reads only the needed columns; the plan shows both on the scan.",
+      "misconceptions": [
+        "Confuses deferring work with reducing it",
+        "Forgets partition pruning by the folder names",
+        "",
+        "Assumes filters run after the scan instead of inside it"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d2-memory",
+      "type": "single",
+      "prompt": "On 30 million rows an eager script peaks at 2.7 GB and the streaming lazy query at 112 MB, with the same result. What explains most of the difference?",
+      "options": [
+        "The lazy query reads only the needed partitions and columns and aggregates batch by batch",
+        "Polars compresses data in memory better than pandas",
+        "The eager script has a bug that copies the data",
+        "The streaming engine uses the disk instead of memory for everything"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The eager script loads every row and column before filtering; the lazy plan reads less and the streaming engine never holds the whole result of the scan.",
+      "misconceptions": [
+        "",
+        "Credits the library instead of the amount of data read",
+        "Assumes a defect when the design reads everything by intent",
+        "Confuses batching with spilling all data to disk"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d2-append-retry",
+      "type": "single",
+      "prompt": "A nightly load appends the day's file. It crashed after writing and the scheduler re-ran it. What do you find in the morning?",
+      "options": [
+        "An error in the log and an empty day",
+        "The day's rows twice, and no error anywhere",
+        "The day's rows once, because the table rejects duplicates",
+        "A corrupted table that cannot be read"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "An append is not idempotent: the second run adds the same rows again, and nothing in the file or the table complains.",
+      "misconceptions": [
+        "Expects a re-run to fail loudly",
+        "",
+        "Assumes a table enforces a key it was never given",
+        "Confuses a duplicated write with a broken one"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d2-proof",
+      "type": "single",
+      "prompt": "Which test proves that a daily load is idempotent?",
+      "options": [
+        "The load finishes without errors twice in a row",
+        "Row counts after one load and after two loads are within 1%",
+        "The table has no null values after the second load",
+        "A fingerprint of the table after loading every day once equals the fingerprint after loading every day twice"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Identical output when a day is re-run is shown by equal content fingerprints that ignore row order and file layout.",
+      "misconceptions": [
+        "Takes absence of errors as proof of identical content",
+        "Accepts a tolerance where identity is required",
+        "Checks a quality property instead of sameness",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d2-time-travel",
+      "type": "single",
+      "prompt": "The December figures sent to the board were built from the curated table. Since then, corrections were merged. The run log recorded version 1. How do you reproduce the board's figures?",
+      "options": [
+        "Rebuild from today's table and subtract the corrections",
+        "Read the table at version 1, rebuild the analysis and compare its fingerprint with the recorded one",
+        "Restore last month's backup of the whole lake",
+        "Re-run the analysis today: the figures are close enough"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Time travel to the recorded version rebuilds exactly what was read, and the fingerprint proves the rebuild is identical.",
+      "misconceptions": [
+        "Reverses changes by hand instead of reading the old version",
+        "",
+        "Uses a coarse backup when the table keeps its own versions",
+        "Accepts different numbers as a reproduction"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d2-vacuum",
+      "type": "single",
+      "prompt": "Why can vacuuming a table with a short retention break reproducibility?",
+      "options": [
+        "It deletes the data files that older versions still need",
+        "It deletes the commit log, so versions lose their numbers",
+        "It rewrites every file, changing all fingerprints",
+        "It never does: vacuum only removes temporary files"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Vacuum removes files no longer referenced by the current version; time travel to an older version then fails for lack of its files.",
+      "misconceptions": [
+        "",
+        "Confuses removing data files with removing the log",
+        "Assumes vacuum rewrites current data",
+        "Ignores that old versions' files are exactly what vacuum removes"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d2-per-partition",
+      "type": "single",
+      "prompt": "One of 36 laboratory partitions fails its range gate with 16.7% invalid results. Why gate per partition rather than per load?",
+      "options": [
+        "Partitions are faster to check than the whole table",
+        "A per-load gate cannot compute shares",
+        "One bad delivery is quarantined while the other partitions are published",
+        "Per-partition gates need no rules in the contract"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Blocking per partition stops only the failing producer and month; the rest of the data reaches the study, with the gap flagged.",
+      "misconceptions": [
+        "Picks a speed reason for a decision about blocking",
+        "Assumes the rule cannot be computed on a whole load",
+        "",
+        "Thinks the gate replaces the contract's rules"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d2-lineage",
+      "type": "single",
+      "prompt": "A monthly figure dips in September. With OpenLineage run events for every job, how do you find the cause?",
+      "options": [
+        "Read the pipeline code line by line",
+        "Walk the events backwards from the figure's dataset to the runs that wrote it and the partitions they read, then inspect September's partitions",
+        "Ask each producer whether they changed anything",
+        "Re-run the whole pipeline and see if the dip remains"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO2"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Lineage events record inputs and outputs per run, so the upstream walk narrows the dip to a handful of partitions whose data can be checked.",
+      "misconceptions": [
+        "Ignores the events that record what each run actually read",
+        "",
+        "Starts with people instead of the evidence that narrows the question",
+        "Repeats the problem without locating it"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d3-rare-group",
+      "type": "single",
+      "prompt": "A pharmacovigilance team needs the actual records of patients in a rare group (obstetric stays with chronic kidney disease). Which option fits?",
+      "options": [
+        "A synthetic file of the whole study",
+        "A de-identified extract of that group under an agreement, with minimum columns",
+        "Monthly counts from a query service",
+        "A synthetic file restricted to that group"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO5"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Only real records serve case review; a synthetic file loses or invents rare cells. The extract is still personal data, so it needs an agreement and controls.",
+      "misconceptions": [
+        "Expects a generator to reproduce the members of a rare group",
+        "",
+        "Gives totals to a team that must review cases",
+        "Assumes conditioning on a rare group makes its records real"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d3-small-counts",
+      "type": "single",
+      "prompt": "In a synthetic file, cells with fewer than 10 real encounters are off by 153% on average and cells with 50 or more by 10%. What follows for a request for exact small counts?",
+      "options": [
+        "Use the synthetic file but round the counts",
+        "Generate a larger synthetic file to reduce the error",
+        "Use the synthetic file: 10% is acceptable",
+        "Answer from the real data through a query service, protecting small counts before publication"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO5"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Synthetic counts are draws from a model and are worst exactly where small counts matter; exact counts come from the real data, with output protection.",
+      "misconceptions": [
+        "Treats a model's draw as a count with rounding error",
+        "Expects more draws from the same model to recover exact rare counts",
+        "Reads the large-cell error as if it applied to small cells",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d3-university-plan",
+      "type": "single",
+      "prompt": "A university wants patient-level rows to develop a readmission model. Which plan states its residual risk honestly?",
+      "options": [
+        "Send a synthetic file: synthetic data carries no risk",
+        "Send the pseudonymised table: no names are in it",
+        "A synthetic file for development, released only after per-table attacks pass, with the final model fitted on real data by the consortium",
+        "Refuse: no option is safe"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO5"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The synthetic file serves development; its privacy is shown by attacks and its utility by the gap to the real model, which is why the final fit stays on real data.",
+      "misconceptions": [
+        "Takes the word synthetic as a privacy guarantee",
+        "Forgets that pseudonymised data stays personal data",
+        "",
+        "Ignores options whose risk can be measured and controlled"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d3-relation",
+      "type": "single",
+      "prompt": "Encounters are generated with one model and patients with another, and each encounter gets a random patient. What is lost?",
+      "options": [
+        "How the number and kind of stays depend on the patient",
+        "Referential integrity between the two tables",
+        "The distribution of each encounter column",
+        "Nothing, if both models are good"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The child count and the children's values depend on the parent; random parents keep every column and lose the relation (stays per heart-failure patient fell from 3.06 to 2.10).",
+      "misconceptions": [
+        "",
+        "Thinks random assignment creates orphans, when every encounter still has a patient",
+        "Expects the separate models to change their own marginals",
+        "Assumes good tables make a good relation"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d3-leaf",
+      "type": "single",
+      "prompt": "In a conditional-tree generator, each value is copied from a random real row in the same leaf, and every leaf holds at least 25 real rows. What does raising the leaf size do?",
+      "options": [
+        "Keeps relationships better and copies less",
+        "Has no effect: the leaf only affects speed",
+        "Increases copying, because larger leaves hold more real rows",
+        "Copies less and blurs relationships the analysis needs"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "A larger leaf draws each value from a broader context: less like any one person, and less faithful to the relations between columns.",
+      "misconceptions": [
+        "Assumes privacy and utility move together",
+        "Misses that the leaf is the context a value is drawn from",
+        "Confuses more rows to draw from with closer copies",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d3-tstr",
+      "type": "single",
+      "prompt": "A generator matches every column's distribution within 2%. Trained on its data, the readmission model scores AUC 0.665 on the real holdout; trained on real data, 0.706. What do you report?",
+      "options": [
+        "Utility is high: the marginals match",
+        "The file loses relationships the model relies on: a gap of 0.041 to the real model",
+        "The test is wrong: AUC should be measured on the synthetic data",
+        "Utility cannot be measured without the generator's code"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Train-on-synthetic, test-on-real measures fitness for the study; the gap to the real model is the evidence, whatever the fidelity scores say.",
+      "misconceptions": [
+        "Takes column fidelity as fitness for the analysis",
+        "",
+        "Scores the model on the data it was trained on",
+        "Thinks utility depends on the method rather than on the output"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d3-estimate",
+      "type": "single",
+      "prompt": "On real data the readmission risk ratio for heart failure is 2.07 (1.84 to 2.33). On a synthetic file it is 1.16 (0.96 to 1.41). What does this mean for the study?",
+      "options": [
+        "The synthetic file is fine: both show heart failure raises risk",
+        "The synthetic file is more private, so its estimate is better",
+        "A study run on it would report no clear effect: the file is not fit for this analysis",
+        "Average the two estimates"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Utility is judged on the analysis's own estimate; this file shrinks the effect towards 1 and would change the study's conclusion.",
+      "misconceptions": [
+        "Ignores that one interval includes no effect",
+        "Confuses privacy with correctness of an estimate",
+        "",
+        "Combines a biased estimate with an unbiased one"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d3-vendor",
+      "type": "single",
+      "prompt": "A vendor's synthetic file gives a membership-inference AUC of 1.00 on encounters and 0.90 on patients. What do you tell the release board?",
+      "options": [
+        "The file copies its training records: it fails, whatever it is called",
+        "The attack is broken: a synthetic file cannot score 1.00",
+        "It passes on average across tables",
+        "Exact twins in coarse tables explain it; accept the file"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Members are found with certainty: the file reproduces real stays under new identifiers. A release passes only if every table passes.",
+      "misconceptions": [
+        "",
+        "Trusts the label over the measurement",
+        "Averages away the weakest table an attacker would use",
+        "Forgets that chance matches affect non-members equally"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d3-holdout",
+      "type": "single",
+      "prompt": "Why compare synthetic records with a holdout the generator never saw, rather than count exact matches with the training data?",
+      "options": [
+        "Exact matches are too slow to compute",
+        "The holdout is larger, so the test is more precise",
+        "Exact matches are always zero in good synthetic data",
+        "Chance matches happen for anyone; only members being closer than non-members shows memorisation"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "On coarse attributes about a fifth of never-seen patients have exact twins; the leak is the difference between members and non-members.",
+      "misconceptions": [
+        "Gives a speed reason for a question of evidence",
+        "Misremembers the role of the holdout",
+        "Expects no chance matches on coarse attributes",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d4-sequences",
+      "type": "single",
+      "prompt": "An extract shows 4% of patients unique on sex, year of birth and region. With two known stays (month and diagnosis group) added, 97% of the patients who have two stays are unique. Which number describes the extract's risk?",
+      "options": [
+        "4%: the stays are not identifiers",
+        "97%, for an adversary who knows two stays: the sequence of stays is a quasi-identifier",
+        "The average of the two",
+        "Neither: pseudonymised data cannot be re-identified"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Risk depends on what an adversary may know; for longitudinal records, stays a relative or colleague knows single out almost everyone with them.",
+      "misconceptions": [
+        "Treats only demographic columns as quasi-identifiers",
+        "",
+        "Averages two answers to different questions",
+        "Forgets that pseudonymised data stays personal data"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d4-truncation",
+      "type": "single",
+      "prompt": "Truncating each patient's history to two stays dropped 24% of stays and raised uniqueness at two known stays from 21% to 47%. Why did the risk rise?",
+      "options": [
+        "Truncation adds new information to each record",
+        "The adversary knows more after truncation",
+        "Other patients' later stays were the crowd that matched a person's known stays; removing them left fewer candidates",
+        "It did not: the measurement must be wrong"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO3"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Uniqueness counts candidates who share what is known; removing stays from everyone removes candidates, so a lever must be measured, not assumed.",
+      "misconceptions": [
+        "Assumes risk can only rise by adding data",
+        "Moves the change to the adversary instead of the data",
+        "",
+        "Assumes a protective-sounding lever cannot backfire"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d4-bound",
+      "type": "single",
+      "prompt": "Monthly counts of readmitted stays are to be released with Laplace noise. One patient can have three readmitted stays in a month. What should be done first?",
+      "options": [
+        "Bound each patient's contribution, for example by counting readmitted patients, and calibrate the noise to that bound",
+        "Use the same noise as for a count where each person adds one",
+        "Remove patients with more than one stay",
+        "Add noise only to months with such patients"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO4"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The noise scale is the contribution bound divided by ε; a statistic in which each patient moves each count by at most 1 keeps the guarantee for patients.",
+      "misconceptions": [
+        "",
+        "Ignores that a person can move the count by more than one",
+        "Changes the population instead of bounding the contribution",
+        "Reveals which months contain them"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d4-error",
+      "type": "single",
+      "prompt": "A yearly budget of ε = 1 is split over twelve monthly counts with Laplace noise. What is the expected absolute error of one month, and how do you halve it?",
+      "options": [
+        "1 patient; halve it by rounding",
+        "12 patients; halve it by adding a second noisy release and averaging, at no charge",
+        "12 patients; halve it by publishing only the months with large counts",
+        "12 patients; halve it with twice the budget per month, or with half as many releases"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO4"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "With bound 1 and ε = 1/12 per month the Laplace scale, and the expected absolute error, is 12; halving it needs twice the ε per release.",
+      "misconceptions": [
+        "Confuses ε with the noise scale",
+        "Thinks averaged re-releases are free",
+        "Turns the choice of months into a disclosure",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d4-rerelease",
+      "type": "single",
+      "prompt": "A dashboard recomputes last month's count every night with fresh noise, but the ledger records only the first release. What is wrong?",
+      "options": [
+        "Nothing: each copy has the same ε",
+        "Each copy is a release; averaging them recovers the true count, so the real spend grows nightly",
+        "The counts will drift upwards",
+        "The ledger will refuse after twelve nights"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO4"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "Sequential composition adds up every release; store and serve the first noisy value, or charge every recomputation.",
+      "misconceptions": [
+        "Treats the budget as a property of the query rather than of the releases",
+        "",
+        "Expects bias from unbiased noise",
+        "Forgets that the ledger was never charged"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d4-subtraction",
+      "type": "single",
+      "prompt": "Three hospital groups pool a readmission count by secure aggregation and publish the exact total. Sidra and Ufuq compare notes. What can they learn?",
+      "options": [
+        "Nothing: secure aggregation hides every input",
+        "Only an approximate value for Rawdah",
+        "Rawdah's exact count: the total minus their own",
+        "Each patient's record at Rawdah"
+      ],
+      "key": {
+        "indices": [
+          2
+        ]
+      },
+      "lo": [
+        "LO5"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The masks cancel exactly; anyone who knows all inputs but one can subtract. Outputs need their own protection: minimum sites and cells, or noise.",
+      "misconceptions": [
+        "Extends protection of inputs to the output",
+        "Confuses masks with noise",
+        "",
+        "Overstates what an aggregate reveals"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d4-dropout",
+      "type": "single",
+      "prompt": "In a pairwise-mask protocol, one site drops out after agreeing its masks. The others reveal the masks they shared with it so the sum can be recovered. What must the aggregator then refuse?",
+      "options": [
+        "A late masked value from the dropped site",
+        "Any further values from the surviving sites",
+        "Publishing the recovered sum",
+        "Nothing: recovery has no consequence"
+      ],
+      "key": {
+        "indices": [
+          0
+        ]
+      },
+      "lo": [
+        "LO5"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "With its masks revealed, the dropped site's late value could be unmasked alone; the protocol refuses it once recovery starts.",
+      "misconceptions": [
+        "",
+        "Blocks the sites whose values are still protected",
+        "Treats recovery as a breach of the total",
+        "Misses that the dropped site's masks are now known"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d4-decision",
+      "type": "single",
+      "prompt": "A professor emails a request for all record-level columns, for a thesis, with institutional approval 'to follow'. The synthetic pair passes every attack. What does the release board decide?",
+      "options": [
+        "Approve the synthetic pair now: it is safe",
+        "Send a de-identified extract, which needs no approval",
+        "Reject the request permanently",
+        "Conditional approval: resubmission through the institution with written approval, on the form, with the minimum necessary data"
+      ],
+      "key": {
+        "indices": [
+          3
+        ]
+      },
+      "lo": [
+        "LO6"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "The secondary-use rules require an academic applicant to apply through the institution with written approval and to ask for the minimum necessary; the method applies once the request is complete.",
+      "misconceptions": [
+        "Lets measured safety replace requirements placed on the applicant",
+        "Thinks an extract escapes the rules for personal data",
+        "Ends a request whose gaps can be fixed",
+        ""
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    },
+    {
+      "id": "q-d4-residual",
+      "type": "single",
+      "prompt": "Which line belongs in a release decision record as a residual risk?",
+      "options": [
+        "'Data will be handled responsibly'",
+        "'Membership AUC 0.55 on patients and 0.51 on encounters, under the board's threshold of 0.60; the file remains derived from personal data'",
+        "'Synthetic data carries no risk'",
+        "'The risk is low'"
+      ],
+      "key": {
+        "indices": [
+          1
+        ]
+      },
+      "lo": [
+        "LO6"
+      ],
+      "weight": 1,
+      "scored": true,
+      "timer": 30,
+      "displayMode": "full",
+      "explanation": "A residual risk states what was measured, against which threshold, and what remains; the board and the data protection officer can then check it.",
+      "misconceptions": [
+        "Writes an intention that cannot be checked",
+        "",
+        "Takes the label as the evidence",
+        "States a conclusion without the measurement"
+      ],
+      "liveContext": false,
+      "basis": "best",
+      "confidence": true,
+      "createdAt": 1794778659000,
+      "updatedAt": 1794778659000
+    }
+  ]
+}

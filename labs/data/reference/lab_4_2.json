@@ -1,0 +1,52 @@
+{
+ "true_monthly": [
+  {
+   "admit_month": "2025-01",
+   "patients": 154
+  },
+  {
+   "admit_month": "2025-02",
+   "patients": 142
+  },
+  {
+   "admit_month": "2025-03",
+   "patients": 152
+  },
+  {
+   "admit_month": "2025-04",
+   "patients": 159
+  },
+  {
+   "admit_month": "2025-05",
+   "patients": 164
+  },
+  {
+   "admit_month": "2025-06",
+   "patients": 148
+  },
+  {
+   "admit_month": "2025-07",
+   "patients": 165
+  },
+  {
+   "admit_month": "2025-08",
+   "patients": 176
+  },
+  {
+   "admit_month": "2025-09",
+   "patients": 184
+  },
+  {
+   "admit_month": "2025-10",
+   "patients": 177
+  },
+  {
+   "admit_month": "2025-11",
+   "patients": 164
+  },
+  {
+   "admit_month": "2025-12",
+   "patients": 199
+  }
+ ]
+}

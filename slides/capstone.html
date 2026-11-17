@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-ax="deck" data-track="data-science">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capstone · Capstone: a release package and its defence · Data Preparation at Scale: Contracts, Synthetic Data and Privacy</title>
+<meta name="generator" content="SDAIA Academy engine 1.0.0">
+<link rel="icon" href="../_engine/icon.svg">
+<link rel="alternate" type="text/markdown" href="capstone.md">
+<link rel="describedby" href="../llms.txt">
+<link rel="stylesheet" href="../_engine/academy.css">
+</head>
+<body>
+<div class="deck" data-course="Data Preparation at Scale: Contracts, Synthetic Data and Privacy" data-track="data-science" data-day="Capstone">
+<section class="slide title" id="title" data-auto="title" data-label="Welcome" data-n="1">
+  <div class="kicker">SDAIA Academy · Data Preparation at Scale: Contracts, Synthetic Data and Privacy</div>
+  <h1>Capstone: a release package and its defence</h1>
+  <p class="lead mt">Capstone: Ten minutes each, questions included: the package, its measured results and one attack re-run live</p>
+  <div class="meta"><span class="track">Data Science Track</span><span>4 teaching days + capstone day</span><span>10 min talk and demo</span><span>DS-405</span></div>
+  <aside class="notes">Today is theirs: keep your own talking to the opening and the closing. Confirm the running order and the demo setup (screen sharing, accounts, a recorded backup) first.</aside>
+</section>
+
+<section class="slide" id="requests" data-label="The requests" data-n="2">
+  <div class="kicker">Capstone</div>
+  <h2>One release package for one of three requests</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>R-A · University copy</h4><p class="small mb0">Prof. Adnan's readmission modelling, resubmitted with approval. A synthetic pair or a code-to-data design, with its utility and attacks.</p></div>
+    <div class="card c-cyan"><h4>R-B · Public challenge</h4><p class="small mb0">A teaching dataset anyone can download. Must pass the attacks with margin: it is public forever.</p></div>
+    <div class="card c-purple"><h4>R-C · Ministry dashboard</h4><p class="small mb0">Monthly readmission statistics for 2025 under one budget, with a ledger and small-cell rules.</p></div>
+  </div>
+  <p class="small mt">Every package: contracts and pipeline, the protected or synthetic data, the utility and attack (or error) report, and the decision record.</p>
+  <aside class="notes"><p>Each participant chooses one, individually. R-A and R-B lean on Day 3, R-C on Day 4 session 2; all three need Days 1 and 2 for the data they start from and Day 4 session 4 for the decision. The labs' artifacts are the starting points: decision.yaml, ledger.json, attacks.csv, utility.csv.</p></aside>
+</section>
+
+<section class="slide" id="agenda" data-label="Agenda" data-n="3">
+  <div class="kicker">Capstone</div>
+  <h2>How the presentations run</h2>
+  <div class="agenda">
+    <div class="item now"><div><b>Expectations and final prep</b><small>the rubric, a last rehearsal, then the first presentations</small></div></div>
+    <div class="item"><div><b>Presentations</b><small>ten minutes each, questions and the attack re-run included</small></div></div>
+    <div class="item"><div><b>Review and closing</b><small>peer feedback, the trainer's review, what next</small></div></div>
+  </div>
+  <aside class="notes"><p>Ten minutes per participant including questions and the attack re-run; with eight participants that is about an hour and a half of presentations. Keep a recorded backup of each demo in case a laptop fails.</p></aside>
+</section>
+
+<section class="slide" id="rubric" data-label="The rubric" data-n="4">
+  <div class="kicker">How presentations are scored</div>
+  <h2>The rubric</h2>
+  <div class="bars">
+    <div class="row"><span>Contracts and pipeline</span><div class="bar c-teal" style="--w:100%"></div><span class="val">25%</span></div>
+    <div class="row"><span>Synthetic data validation</span><div class="bar c-cyan" style="--w:100%"></div><span class="val">25%</span></div>
+    <div class="row"><span>Privacy method and risk</span><div class="bar c-coral" style="--w:100%"></div><span class="val">25%</span></div>
+    <div class="row"><span>Release decision</span><div class="bar c-purple" style="--w:60%"></div><span class="val">15%</span></div>
+    <div class="row"><span>Reproducibility</span><div class="bar c-amber" style="--w:40%"></div><span class="val">10%</span></div>
+  </div>
+  <div class="callout tip mt"><b>Show results from at least two measured runs.</b> A claim without a number is a plan, not a result.</div>
+  <aside class="notes"><p>Full marks, criterion by criterion. Contracts and pipeline: an ODCS contract that runs on the input, a load proven idempotent by fingerprint, the version recorded. Synthetic data validation (or, for R-C, the error of the released statistics): TSTR against TRTR and the study's estimate with its interval. Privacy method and risk: per-table attacks against a holdout, or a ledger with a stated unit and bound; longitudinal risk measured. Release decision: the checklist against the sharing policy and secondary-use rules, a residual risk with numbers, checkable conditions, a named approver. Reproducibility: a fresh clone runs end to end with the README's commands.</p></aside>
+</section>
+
+<section class="slide" id="format" data-label="Format" data-n="5">
+  <div class="kicker">Format</div>
+  <h2>10 minutes for each defence, questions included</h2>
+  <div class="cols cols-3">
+    <div class="card c-teal"><h4>1 · The request</h4><p class="small mb0">Which one, what it needs exactly, and the rules it was tested against.</p></div>
+    <div class="card c-cyan"><h4>2 · The package</h4><p class="small mb0">Method, utility and risk numbers, the decision and its conditions.</p></div>
+    <div class="card c-coral"><h4>3 · The live attack</h4><p class="small mb0">The assessor names a table; you re-run one attack on it from your repository.</p></div>
+  </div>
+  <div class="callout note mt"><b>Peer feedback.</b> After each defence, everyone writes one strength, one question and one suggestion.</div>
+  <aside class="notes"><p>The live re-run is the reproducibility test in miniature: the attack must run from the participant's repository in under a minute. For R-C, the "attack" is the averaging attack or a differencing of two released tables against their ledger. Stop questions at the ten-minute mark.</p></aside>
+</section>
+
+<section class="slide order" id="running-order" data-label="Running order" data-n="6">
+  <div class="kicker">Running order</div>
+  <h2>Who presents when</h2>
+  <table class="t small">
+    <tr><th>#</th><th>Presenter</th><th>Project</th></tr>
+    <tr><td>1</td><td><input placeholder="name"></td><td><input placeholder="Project"></td></tr>
+    <tr><td>2</td><td><input placeholder="name"></td><td><input placeholder="Project"></td></tr>
+    <tr><td>3</td><td><input placeholder="name"></td><td><input placeholder="Project"></td></tr>
+    <tr><td>4</td><td><input placeholder="name"></td><td><input placeholder="Project"></td></tr>
+    <tr><td>5</td><td><input placeholder="name"></td><td><input placeholder="Project"></td></tr>
+    <tr><td>6</td><td><input placeholder="name"></td><td><input placeholder="Project"></td></tr>
+    <tr><td>7</td><td><input placeholder="name"></td><td><input placeholder="Project"></td></tr>
+    <tr><td>8</td><td><input placeholder="name"></td><td><input placeholder="Project"></td></tr>
+  </table>
+  <aside class="notes">Type the names in at the start; the fields can be edited live and are not saved, so keep the list in your notes too.</aside>
+</section>
+
+<section class="slide dark" id="final-prep" data-label="Before the first presentation" data-n="7">
+  <div class="kicker">Before the first presentation</div>
+  <h1>Final prep · 20 minutes</h1>
+  <div class="timer" data-minutes="20"></div>
+  <p class="lead">Rehearse once, record a backup, try the demo on this screen.</p>
+  <aside class="notes">Press T to start the timer. Breaks are not slides: press B when the room needs one.</aside>
+</section>
+
+<section class="slide dark presenting" id="now-presenting" data-label="Now presenting" data-n="8">
+  <div class="kicker center">Now presenting</div>
+  <div class="center"><input placeholder="Presenter · project"></div>
+  <div class="timers mt">
+    <div><h3>Defence, questions included</h3><div class="timer" data-minutes="10"></div></div>
+  </div>
+  <aside class="notes">Type the presenter's name and press T to start the timer. Reuse this slide for every presenter.</aside>
+</section>
+
+<section class="slide" id="review" data-label="Trainer review" data-n="9">
+  <div class="kicker">Trainer review</div>
+  <h2>What the presentations showed</h2>
+  <div class="cols cols-3">
+    <div class="card c-teal"><h4>Strongest patterns</h4><p class="small mb0">What several projects got right.</p></div>
+    <div class="card c-coral"><h4>Common gaps</h4><p class="small mb0">What most projects would fix next.</p></div>
+    <div class="card c-purple"><h4>One surprise</h4><p class="small mb0">Something nobody expected.</p></div>
+  </div>
+  <aside class="notes">Fill these in from your scoring notes during the last break. Name projects for strengths; keep gaps anonymous.</aside>
+</section>
+
+<section class="slide" id="what-next" data-label="After the course" data-n="10">
+  <div class="kicker">After the course</div>
+  <h2>Keep going</h2>
+  <ul class="bullets">
+    <li><b>Your project stays yours:</b> keep it reproducible and add the next improvement you named today</li>
+    <li><b>Next in the Academy:</b> DS-405 has no successor in the catalog yet; DS-309 and DS-311 remain the references for single-table privacy and contracts</li>
+    <li><b>At work:</b> pick one release your organisation made this year and write its decision record as in Lab 4.4</li>
+  </ul>
+  <aside class="notes"><p>Ask each participant to name the one release at work they will document first. Point to the README's sources for the national frameworks.</p></aside>
+</section>
+
+<section class="slide dark" id="thanks" data-label="Thank you" data-n="11">
+  <div class="kicker">SDAIA Academy</div>
+  <h1>Thank you</h1>
+  <p class="lead">Data Preparation at Scale: Contracts, Synthetic Data and Privacy</p>
+</section>
+</div>
+<script type="application/json" id="academy-data">{"v":1,"engine":"1.0.0","build":{"at":"2026-11-15T21:37:39Z","version":"2027.1.0","commit":"0cb43b2"},"course":{"id":"ds-405","code":"DS-405","title":"Data Preparation at Scale: Contracts, Synthetic Data and Privacy","track":"data-science","lang":"en","dir":"ltr","url":"https://sdaiaacademy.github.io/ds-405/","repo":"SDAIAAcademy/ds-405","home":"../index.html"},"deck":{"id":"capstone","kind":"capstone","day":5,"label":"Capstone","title":"Capstone: a release package and its defence","prev":"day4.html","next":null,"md":"capstone.md","alt":{}},"sessions":[],"slides":[{"id":"title","n":1,"title":"Capstone: a release package and its defence","kind":"title","session":0,"hash":"41662ef0","md":"#### [capstone#title] Capstone: a release package and its defence\n\n*SDAIA Academy · Data Preparation at Scale: Contracts, Synthetic Data and Privacy*\n\nCapstone: Ten minutes each, questions included: the package, its measured results and one attack re-run live\n\nData Science Track · 4 teaching days + capstone day · 10 min talk and demo · DS-405","notes":"Today is theirs: keep your own talking to the opening and the closing. Confirm the running order and the demo setup (screen sharing, accounts, a recorded backup) first.","minutes":null,"lo":[]},{"id":"requests","n":2,"title":"One release package for one of three requests","kind":"content","session":0,"hash":"1a7aab69","md":"#### [capstone#requests] One release package for one of three requests\n\n*Capstone*\n\n- **R-A · University copy.** Prof. Adnan's readmission modelling, resubmitted with approval. A synthetic pair or a code-to-data design, with its utility and attacks.\n- **R-B · Public challenge.** A teaching dataset anyone can download. Must pass the attacks with margin: it is public forever.\n- **R-C · Ministry dashboard.** Monthly readmission statistics for 2025 under one budget, with a ledger and small-cell rules.\n\nEvery package: contracts and pipeline, the protected or synthetic data, the utility and attack (or error) report, and the decision record.","notes":"Each participant chooses one, individually. R-A and R-B lean on Day 3, R-C on Day 4 session 2; all three need Days 1 and 2 for the data they start from and Day 4 session 4 for the decision. The labs' artifacts are the starting points: decision.yaml, ledger.json, attacks.csv, utility.csv.","minutes":null,"lo":[]},{"id":"agenda","n":3,"title":"How the presentations run","kind":"content","session":0,"hash":"7089f4d9","md":"#### [capstone#agenda] How the presentations run\n\n*Capstone*\n\n- **Expectations and final prep**: the rubric, a last rehearsal, then the first presentations\n- **Presentations**: ten minutes each, questions and the attack re-run included\n- **Review and closing**: peer feedback, the trainer's review, what next","notes":"Ten minutes per participant including questions and the attack re-run; with eight participants that is about an hour and a half of presentations. Keep a recorded backup of each demo in case a laptop fails.","minutes":null,"lo":[]},{"id":"rubric","n":4,"title":"The rubric","kind":"content","session":0,"hash":"92c62e7a","md":"#### [capstone#rubric] The rubric\n\n*How presentations are scored*\n\n| Item | Value |\n| --- | --- |\n| Contracts and pipeline | 25% |\n| Synthetic data validation | 25% |\n| Privacy method and risk | 25% |\n| Release decision | 15% |\n| Reproducibility | 10% |\n\n> **Show results from at least two measured runs.** A claim without a number is a plan, not a result.","notes":"Full marks, criterion by criterion. Contracts and pipeline: an ODCS contract that runs on the input, a load proven idempotent by fingerprint, the version recorded. Synthetic data validation (or, for R-C, the error of the released statistics): TSTR against TRTR and the study's estimate with its interval. Privacy method and risk: per-table attacks against a holdout, or a ledger with a stated unit and bound; longitudinal risk measured. Release decision: the checklist against the sharing policy and secondary-use rules, a residual risk with numbers, checkable conditions, a named approver. Reproducibility: a fresh clone runs end to end with the README's commands.","minutes":null,"lo":[]},{"id":"format","n":5,"title":"10 minutes for each defence, questions included","kind":"content","session":0,"hash":"97e25665","md":"#### [capstone#format] 10 minutes for each defence, questions included\n\n*Format*\n\n- **1 · The request.** Which one, what it needs exactly, and the rules it was tested against.\n- **2 · The package.** Method, utility and risk numbers, the decision and its conditions.\n- **3 · The live attack.** The assessor names a table; you re-run one attack on it from your repository.\n\n> **Peer feedback.** After each defence, everyone writes one strength, one question and one suggestion.","notes":"The live re-run is the reproducibility test in miniature: the attack must run from the participant's repository in under a minute. For R-C, the \"attack\" is the averaging attack or a differencing of two released tables against their ledger. Stop questions at the ten-minute mark.","minutes":null,"lo":[]},{"id":"running-order","n":6,"title":"Who presents when","kind":"order","session":0,"hash":"20432938","md":"#### [capstone#running-order] Who presents when\n\n*Running order*\n\n| # | Presenter | Project |\n| --- | --- | --- |\n| 1 |  |  |\n| 2 |  |  |\n| 3 |  |  |\n| 4 |  |  |\n| 5 |  |  |\n| 6 |  |  |\n| 7 |  |  |\n| 8 |  |  |","notes":"Type the names in at the start; the fields can be edited live and are not saved, so keep the list in your notes too.","minutes":null,"lo":[]},{"id":"final-prep","n":7,"title":"Final prep · 20 minutes","kind":"content","session":0,"hash":"cbb54b3e","md":"#### [capstone#final-prep] Final prep · 20 minutes\n\n*Before the first presentation*\n\nRehearse once, record a backup, try the demo on this screen.","notes":"Press T to start the timer. Breaks are not slides: press B when the room needs one.","minutes":null,"lo":[]},{"id":"now-presenting","n":8,"title":"Defence, questions included","kind":"presenting","session":0,"hash":"9fe5f24f","md":"#### [capstone#now-presenting] Defence, questions included\n\n*Now presenting*","notes":"Type the presenter's name and press T to start the timer. Reuse this slide for every presenter.","minutes":null,"lo":[]},{"id":"review","n":9,"title":"What the presentations showed","kind":"content","session":0,"hash":"c8c581b8","md":"#### [capstone#review] What the presentations showed\n\n*Trainer review*\n\n- **Strongest patterns.** What several projects got right.\n- **Common gaps.** What most projects would fix next.\n- **One surprise.** Something nobody expected.","notes":"Fill these in from your scoring notes during the last break. Name projects for strengths; keep gaps anonymous.","minutes":null,"lo":[]},{"id":"what-next","n":10,"title":"Keep going","kind":"content","session":0,"hash":"942cbd99","md":"#### [capstone#what-next] Keep going\n\n*After the course*\n\n- **Your project stays yours:** keep it reproducible and add the next improvement you named today\n- **Next in the Academy:** DS-405 has no successor in the catalog yet; DS-309 and DS-311 remain the references for single-table privacy and contracts\n- **At work:** pick one release your organisation made this year and write its decision record as in Lab 4.4","notes":"Ask each participant to name the one release at work they will document first. Point to the README's sources for the national frameworks.","minutes":null,"lo":[]},{"id":"thanks","n":11,"title":"Thank you","kind":"content","session":0,"hash":"583d576f","md":"#### [capstone#thanks] Thank you\n\n*SDAIA Academy*\n\nData Preparation at Scale: Contracts, Synthetic Data and Privacy","notes":"","minutes":null,"lo":[]}],"activities":[],"ai":{"context":{"course":"../context/course.md","courseJs":"../context/course.js","day":"capstone.md","llms":"../llms.txt"},"tasks":[],"tools":[]},"bridge":{"allowedOrigins":[]},"features":{},"strings":{}}</script>
+<script src="../_engine/academy.js"></script>
+</body>
+</html>
