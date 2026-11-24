@@ -2,9 +2,9 @@
   "v": 1,
   "engine": "1.0.0",
   "build": {
-    "at": "2026-11-15T21:37:39Z",
-    "version": "2027.1.0",
-    "commit": "0cb43b2"
+    "at": "2026-11-24T17:57:17Z",
+    "version": "2027.2.0",
+    "commit": "f643328"
   },
   "lang": "en",
   "dir": "ltr",
@@ -501,7 +501,7 @@
       "n": 13,
       "session": 2,
       "title": "Incremental and idempotent loads",
-      "text": "Session 2 Incremental and idempotent loads Show that an append load is not idempotent Make a daily load idempotent by partition overwrite or merge Prove idempotence by loading one day twice and comparing table hashes 02",
+      "text": "Session 2 Incremental and idempotent loads Show that an append load is not idempotent Make a daily load idempotent by partition overwrite or merge Prove idempotence by loading one day twice and comparing table hashes Choose log-based change data capture or a full reload for a source, from how often it is copied, how much changes and whether rows are deleted 02",
       "href": "../slides/day2.html#s2"
     },
     {
@@ -528,7 +528,7 @@
       "n": 16,
       "session": 2,
       "title": "\"Same table\" means same content, in any order and any files",
-      "text": "Lab 2.2 · step 2 \"Same table\" means same content, in any order and any files def table_hash(df): d = df.select(COLS).sort(KEY) # fixed columns, fixed order return hashlib.sha256(d.write_csv().encode()).hexdigest()[:16] Two tables with the same fingerprint hold the same rows. That is the proof the outcome asks for: identical output when a day is re-run.",
+      "text": "Lab 2.2 · step 2 \"Same table\" means same content, in any order and any files def table_hash(df): d = df.select(COLS).sort(KEY) # fixed columns, fixed order return hashlib.sha256(d.write_csv().encode()).hexdigest()[:16] Same fingerprint, same rows: the proof that a re-run day gives identical output.",
       "href": "../slides/day2.html#fingerprint"
     },
     {
@@ -560,8 +560,26 @@
     },
     {
       "deck": "day2",
-      "id": "check-idempotent",
+      "id": "reload-or-capture",
       "n": 20,
+      "session": 2,
+      "title": "Ufuq's dispensing table, copied every 15 minutes: three ways to copy it",
+      "text": "A source refreshed often Ufuq's dispensing table, copied every 15 minutes: three ways to copy it One day, 96 copies Rows read Deletes seen Needs Full reload each time 46,272,005 all Nothing but read access Query on an updated-at column 6,171 0 of 129 A column every writer keeps current Log-based change data capture 6,436 events 129 of 129 Read access to the database's change log One simulated day of a 480,000-line table: 4,416 inserts, 1,891 updates, 129 deletes. Contrast: Rawdah's ward reference table, 1,840 rows copied weekly with about 12 changes, is simply reloaded.",
+      "href": "../slides/day2.html#reload-or-capture"
+    },
+    {
+      "deck": "day2",
+      "id": "change-log",
+      "n": 21,
+      "session": 2,
+      "title": "Apply events in log order, merged on the key, and remember the last one applied",
+      "text": "Reading the change log Apply events in log order, merged on the key, and remember the last one applied seq 66 insert line 480047 (copy 3) seq 78 update line 480047 (copy 3) seq 212 delete line 480047 (copy 8) After copy 8 Line 480047 in the copy Full reload gone: correct Updated-at query still there, as of seq 78: wrong Change log gone: correct Applied with the merge of Lab 2.2: insert, update or delete by key, skipping any event at or below the sequence already applied, so a replay changes nothing.",
+      "href": "../slides/day2.html#change-log"
+    },
+    {
+      "deck": "day2",
+      "id": "check-idempotent",
+      "n": 22,
       "session": 2,
       "title": "Which load survives Sidra?",
       "text": "Checkpoint Which load survives Sidra? Sidra's delivery on day 5 corrects results first delivered on day 2. Which load leaves exactly one row per result, holding the corrected value? Append each day's file Merge each day's file on encounter, test and round Overwrite each day's partition Append, then drop rows that are identical in every column",
@@ -570,7 +588,7 @@
     {
       "deck": "day2",
       "id": "lab-2-2",
-      "n": 21,
+      "n": 23,
       "session": 2,
       "title": "Load one day twice",
       "text": "Lab 2.2 · 25 min Load one day twice Make the daily laboratory load idempotent and prove it by loading one day twice, including a day the producer delivered again with corrections. D2_2_idempotent_load.ipynb The append load and its duplicates 5 min A table fingerprint 4 min Idempotent: overwrite the day's partition 6 min Corrections: merge on the business key 6 min Load every day twice and compare 4 min ✱ Stretch: Keep a load log so a day is skipped when its file has not changed",
@@ -579,16 +597,16 @@
     {
       "deck": "day2",
       "id": "s3",
-      "n": 22,
+      "n": 24,
       "session": 3,
       "title": "Tables with history",
-      "text": "Session 3 Tables with history Read an earlier version of a table by version number Rebuild an analysis set exactly from the recorded version Explain what retention and vacuuming do to time travel 03",
+      "text": "Session 3 Tables with history Read an earlier version of a table by version number Rebuild an analysis set exactly from the recorded version Explain what retention and vacuuming do to time travel Diagnose data that was written but is not found, and register it through the table or its catalog 03",
       "href": "../slides/day2.html#s3"
     },
     {
       "deck": "day2",
       "id": "reproduce-question",
-      "n": 23,
+      "n": 25,
       "session": 3,
       "title": "\"Can you reproduce exactly what the board saw in January?\"",
       "text": "The board's question \"Can you reproduce exactly what the board saw in January?\" Since then, producers corrected 2% of December discharge dates. Rawdah delivered late December encounters. Today's table gives different December figures. Without history You rebuild from backups, if any, and hope nothing else changed.",
@@ -597,7 +615,7 @@
     {
       "deck": "day2",
       "id": "table-formats",
-      "n": 24,
+      "n": 26,
       "session": 3,
       "title": "A table format adds a log of commits to files: every commit is a version",
       "text": "Open table formats A table format adds a log of commits to files: every commit is a version Delta Lake A JSON log beside the Parquet files. Used in the labs through delta-rs: no Java needed. Apache Iceberg Snapshots with metadata files; time travel by snapshot id. DuckLake The catalog in a SQL database; snapshots and time travel. Same ideas in all three: atomic commits, versions, time travel, schema evolution.",
@@ -605,8 +623,26 @@
     },
     {
       "deck": "day2",
+      "id": "written-not-found",
+      "n": 27,
+      "session": 3,
+      "title": "A file in the table's folder is not a file in the table",
+      "text": "Written, but not found A file in the table's folder is not a file in the table Sidra's curated pharmacy table January Parquet files in month=2026-01/ 1 January files in the table's log 0 Rows read through the table 0 Rows read by a glob over the folder 9,387 job copied January's file into the folder: \"success\" study January: no rows commit the same rows appended through the writer: version 3 study January: 9,387 rows",
+      "href": "../slides/day2.html#written-not-found"
+    },
+    {
+      "deck": "day2",
+      "id": "register-partitions",
+      "n": 28,
+      "session": 3,
+      "title": "Compare what the metadata lists with what the folder holds",
+      "text": "Diagnose, then register Compare what the metadata lists with what the folder holds What you find Register it by Files copied in, or a job that stopped before its commit (a table format such as Delta) Writing the rows through the table's writer, so a commit lists them A new folder the catalog has no partition for (a Hive-style catalog) ALTER TABLE … ADD PARTITION, or MSCK REPAIR TABLE for every new folder month=2026-1 beside month=2026-01 Fixing the writer's format: a filter on 2026-01 finds none of its rows",
+      "href": "../slides/day2.html#register-partitions"
+    },
+    {
+      "deck": "day2",
       "id": "history-log",
-      "n": 25,
+      "n": 29,
       "session": 3,
       "title": "Four commits, four versions of December",
       "text": "Lab 2.3 · step 1 Four commits, four versions of December Version Operation What happened 0 WRITE October and November loaded 1 WRITE (append) December arrives; the board's figures are built here 2 MERGE 2% of December discharges corrected 3 WRITE (append) Rawdah's late December encounters",
@@ -615,16 +651,16 @@
     {
       "deck": "day2",
       "id": "record-version",
-      "n": 26,
+      "n": 30,
       "session": 3,
       "title": "Record the version with the analysis, and the fingerprint of what it produced",
-      "text": "Lab 2.3 · step 2 Record the version with the analysis, and the fingerprint of what it produced {\"analysis\": \"december_discharges\", \"table\": \"curated/encounters\", \"version\": 1, \"rows\": 15, \"fingerprint\": \"2b4a6dfab81fa30c\"} Two fields make the figures reproducible: the version read and the fingerprint written.",
+      "text": "Lab 2.3 · step 2 Record the version with the analysis, and the fingerprint of what it produced {\"analysis\": \"december_discharges\", \"table\": \"curated/encounters\", \"version\": 1, \"rows\": 15, \"fingerprint\": \"2b4a6dfab81fa30c\"} Version read, fingerprint written: the figures are reproducible.",
       "href": "../slides/day2.html#record-version"
     },
     {
       "deck": "day2",
       "id": "rebuild-identical",
-      "n": 27,
+      "n": 31,
       "session": 3,
       "title": "Read version 1, rebuild, compare: identical; today: every cell moved",
       "text": "Lab 2.3 · steps 3 and 4 Read version 1, rebuild, compare: identical; today: every cell moved then = analysis_set(pl.read_delta(TABLE, version=1)) U.fingerprint(then) == RUN[\"fingerprint\"] # True 15 of 15 producer and ward cells differ between version 1 and today (full size)",
@@ -633,7 +669,7 @@
     {
       "deck": "day2",
       "id": "vacuum",
-      "n": 28,
+      "n": 32,
       "session": 3,
       "title": "Vacuum deletes the files old versions need",
       "text": "Lab 2.3 · step 5 Vacuum deletes the files old versions need vacuum retention 0 hours on a copy read v1 FileNotFoundError Delta's default retention is seven days. Set it to the reproducibility promise, or snapshot each release with its fingerprint. The board and the data owner decide the promise, not the platform alone.",
@@ -642,7 +678,7 @@
     {
       "deck": "day2",
       "id": "check-history",
-      "n": 29,
+      "n": 33,
       "session": 3,
       "title": "Reproduce a release",
       "text": "Checkpoint Reproduce a release A release from last March must be reproduced. The run log names the table but not the version, and the table is vacuumed weekly with seven days' retention. What is true? Read the table as of last March's timestamp It cannot be rebuilt exactly from the table; only a kept snapshot of the release would prove it Rebuild from today's table: corrections only improve it Restore the table to March and rerun",
@@ -651,7 +687,7 @@
     {
       "deck": "day2",
       "id": "lab-2-3",
-      "n": 30,
+      "n": 34,
       "session": 3,
       "title": "Rebuild last month",
       "text": "Lab 2.3 · 25 min Rebuild last month Rebuild last month's analysis set from the table snapshot it was built on, prove it is identical, and measure what later corrections changed. D2_3_table_snapshots.ipynb Read the table's history 4 min The analysis run record 4 min Rebuild from the recorded version 7 min Prove it identical, then diff with today 6 min What vacuuming would break 4 min ✱ Stretch: Restore the table to the recorded version and compare",
@@ -660,7 +696,7 @@
     {
       "deck": "day2",
       "id": "s4",
-      "n": 31,
+      "n": 35,
       "session": 4,
       "title": "Gates and lineage at scale",
       "text": "Session 4 Gates and lineage at scale Run blocking rules per partition and quarantine the failures Emit OpenLineage run events for every job run Trace a defect in an output to its producer and partition 04",
@@ -669,7 +705,7 @@
     {
       "deck": "day2",
       "id": "dip",
-      "n": 32,
+      "n": 36,
       "session": 4,
       "title": "Median creatinine fell by a quarter in September, and nobody knows why",
       "text": "Yesterday's figure Median creatinine fell by a quarter in September, and nobody knows why 2025-08 89.8 2025-09 66.5 2025-10 90.1 Median creatinine, µmol/L, all producers, from yesterday's run without gates (full lake).",
@@ -678,7 +714,7 @@
     {
       "deck": "day2",
       "id": "gate-per-partition",
-      "n": 33,
+      "n": 37,
       "session": 4,
       "title": "Gate each partition, so one bad delivery stops alone",
       "text": "Lab 2.4 · step 1 Gate each partition, so one bad delivery stops alone The contract's ranges, per test: creatinine 20 to 1,500 µmol/L, glucose 1 to 60 mmol/L. A partition fails if more than 0.5% of its results fall outside. One lazy query gates all 36 partitions. Partition Rows Invalid RWD, 2025-09 600,012 100,002 (16.7%) other 35 0",
@@ -687,7 +723,7 @@
     {
       "deck": "day2",
       "id": "quarantine",
-      "n": 34,
+      "n": 38,
       "session": 4,
       "title": "Publish what passed, quarantine what failed, and say what is missing",
       "text": "Lab 2.4 · step 2 Publish what passed, quarantine what failed, and say what is missing 35 partitions published → RWD 2025-09 quarantined until Rawdah re-sends → September figure 90.2, from 2 producers, flagged",
@@ -696,7 +732,7 @@
     {
       "deck": "day2",
       "id": "openlineage",
-      "n": 35,
+      "n": 39,
       "session": 4,
       "title": "A lineage event says which run read what and wrote what",
       "text": "Lab 2.4 · step 3 A lineage event says which run read what and wrote what {\"eventType\": \"FAIL\", \"job\": {\"namespace\": \"rimah\", \"name\": \"rimah.labs_gate\"}, \"run\": {\"runId\": \"dba00c8e-...\", \"facets\": {\"gate\": {\"invalid\": 100002, \"rows\": 600012}}}, \"inputs\": [{\"name\": \"raw/labs/producer=RWD/month=2025-09\"}], \"outputs\": [{\"name\": \"quarantine/labs/producer=RWD/month=2025-09\"}]}",
@@ -705,7 +741,7 @@
     {
       "deck": "day2",
       "id": "trace-back",
-      "n": 36,
+      "n": 40,
       "session": 4,
       "title": "Walk the events backwards from the figure to the partition",
       "text": "Lab 2.4 · step 4 Walk the events backwards from the figure to the partition start analysis/monthly_creatinine written by rimah.monthly_creatinine: 36 curated partitions written by rimah.labs_publish: 36 raw partitions; September: 3 medians SDR 89.97 · UFQ 90.51 · RWD 1.02 traced Rawdah, September: creatinine in mg/dL under a µmol/L label",
@@ -714,7 +750,7 @@
     {
       "deck": "day2",
       "id": "check-gates",
-      "n": 37,
+      "n": 41,
       "session": 4,
       "title": "One partition fails",
       "text": "Checkpoint One partition fails Rawdah's September laboratory partition fails its gate. The study's monthly report is due today. What does the pipeline do? Stop the whole load until Rawdah re-sends Publish it with a warning in the log Publish the 35 partitions that passed, quarantine Rawdah's September, and flag September as two producers Divide the partition's values by 88.42 and publish",
@@ -723,7 +759,7 @@
     {
       "deck": "day2",
       "id": "lab-2-4",
-      "n": 38,
+      "n": 42,
       "session": 4,
       "title": "Gates and lineage per partition",
       "text": "Lab 2.4 · 25 min Gates and lineage per partition Run blocking rules per partition of the lake, quarantine what fails, emit lineage events, and trace a seeded defect to its producer and partition. D2_4_gates_lineage.ipynb Contract rules as per-partition gates 7 min Quarantine and publish the rest 5 min Emit OpenLineage run events 6 min Trace the defect back through the events 7 min ✱ Stretch: A gate on the distribution, not only on the values",
@@ -732,7 +768,7 @@
     {
       "deck": "day2",
       "id": "wrap-up",
-      "n": 39,
+      "n": 43,
       "session": 4,
       "title": "Three things to keep",
       "text": "Day 2 · wrap-up Three things to keep Read less Partitions, columns and lazy plans: 2.7 GB became 112 MB for the same answer. Load twice, same table Merge on the business key; prove it with a fingerprint. Versions and gates Record the version you read; gate per partition; emit lineage so a figure can be traced.",
@@ -741,7 +777,7 @@
     {
       "deck": "day2",
       "id": "next",
-      "n": 40,
+      "n": 44,
       "session": 4,
       "title": "Day 3: Synthesise and attack",
       "text": "Next Day 3: Synthesise and attack The university wants a copy. Tomorrow you generate synthetic patients and encounters, measure whether the readmission model still works on them, and attack them to see what leaks.",

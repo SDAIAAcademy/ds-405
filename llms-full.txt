@@ -1,7 +1,7 @@
 ---
 course: "Data Preparation at Scale: Contracts, Synthetic Data and Privacy"
 code: "DS-405"
-version: "2027.1.0"
+version: "2027.2.0"
 scope: "course"
 language: "en"
 view: "trainee"
@@ -674,6 +674,7 @@ Rewrite an eager cleaning script as a lazy query over the partitioned lake and c
 - Show that an append load is not idempotent
 - Make a daily load idempotent by partition overwrite or merge
 - Prove idempotence by loading one day twice and comparing table hashes
+- Choose log-based change data capture or a full reload for a source, from how often it is copied, how much changes and whether rows are deleted
 
 #### [day2#loads-run-twice] Every load will run twice one day
 
@@ -705,7 +706,7 @@ def table_hash(df):
     return hashlib.sha256(d.write_csv().encode()).hexdigest()[:16]
 ```
 
-Two tables with the same fingerprint hold the same rows. That is the proof the outcome asks for: identical output when a day is re-run.
+Same fingerprint, same rows: the proof that a re-run day gives identical output.
 
 #### [day2#partition-overwrite] Overwrite the day's partition: a re-run replaces, never adds
 
@@ -745,6 +746,36 @@ Days 1 to 5 by merge: 299,976 rows, **0 duplicate keys**.
 
 > **Order still matters.** Replaying day 2 after day 5 puts the old values back until day 5 is replayed. Real pipelines compare a delivery version before updating.
 
+#### [day2#reload-or-capture] Ufuq's dispensing table, copied every 15 minutes: three ways to copy it
+
+*A source refreshed often*
+
+| One day, 96 copies | Rows read | Deletes seen | Needs |
+| --- | --- | --- | --- |
+| Full reload each time | 46,272,005 | all | Nothing but read access |
+| Query on an updated-at column | 6,171 | 0 of 129 | A column every writer keeps current |
+| Log-based change data capture | 6,436 events | 129 of 129 | Read access to the database's change log |
+
+One simulated day of a 480,000-line table: 4,416 inserts, 1,891 updates, 129 deletes.
+
+**Contrast:** Rawdah's ward reference table, 1,840 rows copied weekly with about 12 changes, is simply reloaded.
+
+#### [day2#change-log] Apply events in log order, merged on the key, and remember the last one applied
+
+*Reading the change log*
+
+- seq 66: insert line 480047 (copy 3)
+- seq 78: update line 480047 (copy 3)
+- seq 212: delete line 480047 (copy 8)
+
+| After copy 8 | Line 480047 in the copy |
+| --- | --- |
+| Full reload | gone: correct |
+| Updated-at query | still there, as of seq 78: wrong |
+| Change log | gone: correct |
+
+Applied with the merge of Lab 2.2: insert, update or delete by key, skipping any event at or below the sequence already applied, so a replay changes nothing.
+
 #### [day2#check-idempotent] Which load survives Sidra?
 
 *Checkpoint*
@@ -780,6 +811,7 @@ Make the daily laboratory load idempotent and prove it by loading one day twice,
 - Read an earlier version of a table by version number
 - Rebuild an analysis set exactly from the recorded version
 - Explain what retention and vacuuming do to time travel
+- Diagnose data that was written but is not found, and register it through the table or its catalog
 
 #### [day2#reproduce-question] "Can you reproduce exactly what the board saw in January?"
 
@@ -800,6 +832,32 @@ Make the daily laboratory load idempotent and prove it by loading one day twice,
 - **DuckLake.** The catalog in a SQL database; snapshots and time travel.
 
 Same ideas in all three: atomic commits, versions, time travel, schema evolution.
+
+#### [day2#written-not-found] A file in the table's folder is not a file in the table
+
+*Written, but not found*
+
+| Sidra's curated pharmacy table | January |
+| --- | --- |
+| Parquet files in `month=2026-01/` | 1 |
+| January files in the table's log | 0 |
+| Rows read through the table | 0 |
+| Rows read by a glob over the folder | 9,387 |
+
+- job: copied January's file into the folder: "success"
+- study: January: no rows
+- commit: the same rows appended through the writer: version 3
+- study: January: 9,387 rows
+
+#### [day2#register-partitions] Compare what the metadata lists with what the folder holds
+
+*Diagnose, then register*
+
+| What you find | Register it by |
+| --- | --- |
+| Files copied in, or a job that stopped before its commit (a table format such as Delta) | Writing the rows through the table's writer, so a commit lists them |
+| A new folder the catalog has no partition for (a Hive-style catalog) | `ALTER TABLE … ADD PARTITION`, or `MSCK REPAIR TABLE` for every new folder |
+| `month=2026-1` beside `month=2026-01` | Fixing the writer's format: a filter on 2026-01 finds none of its rows |
 
 #### [day2#history-log] Four commits, four versions of December
 
@@ -822,7 +880,7 @@ Same ideas in all three: atomic commits, versions, time travel, schema evolution
  "version": 1, "rows": 15, "fingerprint": "2b4a6dfab81fa30c"}
 ```
 
-Two fields make the figures reproducible: the version read and the fingerprint written.
+Version read, fingerprint written: the figures are reproducible.
 
 #### [day2#rebuild-identical] Read version 1, rebuild, compare: identical; today: every cell moved
 

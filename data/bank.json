@@ -6,7 +6,7 @@
     "code": "DS-405",
     "title": "Data Preparation at Scale: Contracts, Synthetic Data and Privacy",
     "lang": "en",
-    "version": "2027.1.0"
+    "version": "2027.2.0"
   },
   "questions": [
     {
@@ -937,6 +937,36 @@
       "timer": 30
     },
     {
+      "id": "q-d2-capture-or-reload",
+      "type": "single",
+      "prompt": "Rawdah's admissions table holds 300,000 rows and is copied to the consortium every 10 minutes. About 40 rows change between copies, cancelled admissions are deleted from the source, and the database's change log can be read. How should the copy be kept current?",
+      "options": [
+        "Reload the whole table every 10 minutes to hold the latest state",
+        "Query rows whose updated-at time is newer than the last copy",
+        "Reload the whole table once a week and skip the copies in between",
+        "Read the change log and apply its events in log order, by key"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A source copied often with few changes per copy is the case for log-based capture: it reads only the changes, including deletes, in the order they were committed.",
+      "misconceptions": [
+        "Reads every row to move a few dozen changes, and loads the source each time",
+        "Misses deleted rows, which leave no row to carry a new time",
+        "Ignores how often the study needs the copy refreshed",
+        ""
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 2,
+      "session": 2,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
       "id": "q-d2-time-travel",
       "type": "single",
       "prompt": "The December figures sent to the board were built from the curated table. Since then, corrections were merged. The run log recorded version 1. How do you reproduce the board's figures?",
@@ -992,6 +1022,36 @@
       "day": 2,
       "session": 3,
       "level": "understand",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "q-d2-written-not-found",
+      "type": "single",
+      "prompt": "A transfer job reports that it wrote March into the folder month=2026-03/ of Ufuq's curated pharmacy table, a Delta table. Queries through the table return no March rows, yet a glob over the folder reads them. What is the most likely cause?",
+      "options": [
+        "The table's log does not list the file, so it is not in this table",
+        "The Parquet file is damaged, so table readers skip it without an error",
+        "The March rows failed their gate and the pipeline quarantined them",
+        "The table reads an older version by default, from before February"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A table format reads only the files its log lists. A file copied into the folder without a commit is read by a glob but not by the table; commit the rows through the table's writer.",
+      "misconceptions": [
+        "",
+        "A glob read the same file, so it is readable",
+        "Quarantined rows go to the quarantine area, not the table's folder",
+        "Readers take the latest version unless a version is asked for"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 2,
+      "session": 3,
+      "level": "analyze",
       "pool": "practice",
       "weight": 1,
       "timer": 30

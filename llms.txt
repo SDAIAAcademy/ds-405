@@ -1,19 +1,19 @@
 # Data Preparation at Scale: Contracts, Synthetic Data and Privacy
 
-> Contract and link several data producers, prepare 30 million rows idempotently on a laptop, and release health data only after measuring its utility and its risk. SDAIA Academy course DS-405, version 2027.1.0, in English.
+> Contract and link several data producers, prepare 30 million rows idempotently on a laptop, and release health data only after measuring its utility and its risk. SDAIA Academy course DS-405, version 2027.2.0, in English.
 
 Each slide is a heading such as "#### [day1#slide-id] Title": cite slides by that id, and each citation is a link (slides/day1.html#slide-id). These files are what a trainee sees: no speaker notes and no answer keys.
 
 ## Course
 
 - [Course page](https://sdaiaacademy.github.io/ds-405/index.md): overview, outcomes, schedule and labs; the page itself is https://sdaiaacademy.github.io/ds-405/index.html
-- [The whole course](https://sdaiaacademy.github.io/ds-405/llms-full.txt): every unit, session and slide in one file, about 18,228 tokens
+- [The whole course](https://sdaiaacademy.github.io/ds-405/llms-full.txt): every unit, session and slide in one file, about 18,864 tokens
 - [Practice questions](https://sdaiaacademy.github.io/ds-405/practice.html): questions to check yourself, with feedback after each answer
 
 ## Slides
 
 - [Day 1: Contract the producers](https://sdaiaacademy.github.io/ds-405/slides/day1.md): Three producers, one contract, one linkage key, one change policy; sessions: Preparation breaks where producers disagree, One contract, three producers, Linking patients across producers, Versions and breaking changes; page: https://sdaiaacademy.github.io/ds-405/slides/day1.html; about 4,806 tokens
-- [Day 2: Prepare at scale](https://sdaiaacademy.github.io/ds-405/slides/day2.md): Thirty million rows on a laptop, loaded once, rebuilt exactly, gated per partition; sessions: Columnar files and lazy execution, Incremental and idempotent loads, Tables with history, Gates and lineage at scale; page: https://sdaiaacademy.github.io/ds-405/slides/day2.html; about 4,270 tokens
+- [Day 2: Prepare at scale](https://sdaiaacademy.github.io/ds-405/slides/day2.md): Thirty million rows on a laptop, loaded once, rebuilt exactly, gated per partition; sessions: Columnar files and lazy execution, Incremental and idempotent loads, Tables with history, Gates and lineage at scale; page: https://sdaiaacademy.github.io/ds-405/slides/day2.html; about 4,906 tokens
 - [Day 3: Synthesise and attack](https://sdaiaacademy.github.io/ds-405/slides/day3.md): Synthetic patients and encounters, measured for utility and attacked for privacy; sessions: When synthetic data fits, Generating related tables, Utility is measured against the analysis, Privacy is measured by attack; page: https://sdaiaacademy.github.io/ds-405/slides/day3.html; about 3,833 tokens
 - [Day 4: Protect and decide](https://sdaiaacademy.github.io/ds-405/slides/day4.md): Longitudinal risk, a budget over twelve releases, pooling without pooling, and the decision; sessions: Disclosure risk in longitudinal records, Privacy budgets over many releases, Analysis without pooling records, The release decision; page: https://sdaiaacademy.github.io/ds-405/slides/day4.html; about 3,880 tokens
 - [Capstone: Capstone: a release package and its defence](https://sdaiaacademy.github.io/ds-405/slides/capstone.md): Ten minutes each, questions included: the package, its measured results and one attack re-run live; page: https://sdaiaacademy.github.io/ds-405/slides/capstone.html; about 952 tokens
@@ -39,9 +39,9 @@ Each slide is a heading such as "#### [day1#slide-id] Title": cite slides by tha
 
 ## Context files
 
-- [context/course.md](https://sdaiaacademy.github.io/ds-405/context/course.md): the whole course, for an assistant that takes a file, about 18,228 tokens
+- [context/course.md](https://sdaiaacademy.github.io/ds-405/context/course.md): the whole course, for an assistant that takes a file, about 18,864 tokens
 - [context/day1.md](https://sdaiaacademy.github.io/ds-405/context/day1.md): Day 1, about 4,806 tokens
-- [context/day2.md](https://sdaiaacademy.github.io/ds-405/context/day2.md): Day 2, about 4,270 tokens
+- [context/day2.md](https://sdaiaacademy.github.io/ds-405/context/day2.md): Day 2, about 4,906 tokens
 - [context/day3.md](https://sdaiaacademy.github.io/ds-405/context/day3.md): Day 3, about 3,833 tokens
 - [context/day4.md](https://sdaiaacademy.github.io/ds-405/context/day4.md): Day 4, about 3,880 tokens
 - [context/capstone.md](https://sdaiaacademy.github.io/ds-405/context/capstone.md): Capstone, about 952 tokens

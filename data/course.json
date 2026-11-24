@@ -2,9 +2,9 @@
   "v": 1,
   "engine": "1.0.0",
   "build": {
-    "at": "2026-11-15T21:37:39Z",
-    "version": "2027.1.0",
-    "commit": "0cb43b2"
+    "at": "2026-11-24T17:57:17Z",
+    "version": "2027.2.0",
+    "commit": "f643328"
   },
   "lang": "en",
   "dir": "ltr",
@@ -15,7 +15,7 @@
   "course": {
     "id": "ds-405",
     "code": "DS-405",
-    "version": "2027.1.0",
+    "version": "2027.2.0",
     "title": "Data Preparation at Scale: Contracts, Synthetic Data and Privacy",
     "tagline": "Contract and link several data producers, prepare 30 million rows idempotently on a laptop, and release health data only after measuring its utility and its risk",
     "description": "Participants run data preparation for the fictional Rimah Health Data Consortium: three hospital groups send encounter, laboratory and pharmacy extracts (about 30 million synthetic rows) for a readmission study, and a university partner wants a copy. They contract and link the producers, rebuild preparation as an incremental pipeline over partitioned columnar tables, generate and attack synthetic versions, compare privacy-enhancing methods for four requests, and write a release decision a privacy officer could sign. Single-table contracts come from DS-311; de-identification and basic differential privacy from DS-309.",
@@ -352,7 +352,8 @@
             "outcomes": [
               "Show that an append load is not idempotent",
               "Make a daily load idempotent by partition overwrite or merge",
-              "Prove idempotence by loading one day twice and comparing table hashes"
+              "Prove idempotence by loading one day twice and comparing table hashes",
+              "Choose log-based change data capture or a full reload for a source, from how often it is copied, how much changes and whether rows are deleted"
             ],
             "lo": [
               "LO2"
@@ -397,7 +398,8 @@
             "outcomes": [
               "Read an earlier version of a table by version number",
               "Rebuild an analysis set exactly from the recorded version",
-              "Explain what retention and vacuuming do to time travel"
+              "Explain what retention and vacuuming do to time travel",
+              "Diagnose data that was written but is not found, and register it through the table or its catalog"
             ],
             "lo": [
               "LO2"
@@ -1004,6 +1006,22 @@
           {
             "title": "Soda Core",
             "url": "https://github.com/sodadata/soda-core"
+          },
+          {
+            "title": "Delta Lake transaction log protocol",
+            "url": "https://github.com/delta-io/delta/blob/master/PROTOCOL.md"
+          },
+          {
+            "title": "Apache Spark SQL: REPAIR TABLE",
+            "url": "https://spark.apache.org/docs/latest/sql-ref-syntax-ddl-repair-table.html"
+          },
+          {
+            "title": "Apache Spark SQL: ALTER TABLE (ADD PARTITION)",
+            "url": "https://spark.apache.org/docs/latest/sql-ref-syntax-ddl-alter-table.html"
+          },
+          {
+            "title": "Debezium: log-based change data capture features",
+            "url": "https://debezium.io/documentation/reference/stable/features.html"
           }
         ]
       },

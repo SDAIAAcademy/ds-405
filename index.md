@@ -1,7 +1,7 @@
 ---
 course: "Data Preparation at Scale: Contracts, Synthetic Data and Privacy"
 code: "DS-405"
-version: "2027.1.0"
+version: "2027.2.0"
 language: "en"
 view: "trainee"
 source: "https://sdaiaacademy.github.io/ds-405/index.html"
@@ -65,11 +65,13 @@ Slides: https://sdaiaacademy.github.io/ds-405/slides/day2.md
   - Show that an append load is not idempotent
   - Make a daily load idempotent by partition overwrite or merge
   - Prove idempotence by loading one day twice and comparing table hashes
+  - Choose log-based change data capture or a full reload for a source, from how often it is copied, how much changes and whether rows are deleted
   - [Lab 2.2: Load one day twice (25 min)](https://sdaiaacademy.github.io/ds-405/labs/D2_2_idempotent_load.ipynb)
 - **Session 3: Tables with history**
   - Read an earlier version of a table by version number
   - Rebuild an analysis set exactly from the recorded version
   - Explain what retention and vacuuming do to time travel
+  - Diagnose data that was written but is not found, and register it through the table or its catalog
   - [Lab 2.3: Rebuild last month (25 min)](https://sdaiaacademy.github.io/ds-405/labs/D2_3_table_snapshots.ipynb)
 - **Session 4: Gates and lineage at scale**
   - Run blocking rules per partition and quarantine the failures
@@ -185,6 +187,10 @@ A release package for one of three data requests (contracts, pipeline, protected
 - [Marquez](https://marquezproject.ai/)
 - [Pandera](https://pandera.readthedocs.io/en/stable/)
 - [Soda Core](https://github.com/sodadata/soda-core)
+- [Delta Lake transaction log protocol](https://github.com/delta-io/delta/blob/master/PROTOCOL.md)
+- [Apache Spark SQL: REPAIR TABLE](https://spark.apache.org/docs/latest/sql-ref-syntax-ddl-repair-table.html)
+- [Apache Spark SQL: ALTER TABLE (ADD PARTITION)](https://spark.apache.org/docs/latest/sql-ref-syntax-ddl-alter-table.html)
+- [Debezium: log-based change data capture features](https://debezium.io/documentation/reference/stable/features.html)
 
 ### Linkage, synthetic data and privacy
 
@@ -213,4 +219,4 @@ A release package for one of three data requests (contracts, pipeline, protected
 
 SDAIA Academy · Data Science Track · Data Preparation at Scale: Contracts, Synthetic Data and Privacy
 
-Course version 2027.1.0 · engine 1.0.0 · built 2026-11-15 · commit 0cb43b2
+Course version 2027.2.0 · engine 1.0.0 · built 2026-11-24 · commit f643328
