@@ -198,7 +198,51 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
     <div class="ev final"><b>result</b><span>identical output when a day is re-run</span></div>
   </div>
   <div class="callout note small mt"><b>Order still matters.</b> Replaying day 2 after day 5 puts the old values back until day 5 is replayed. Real pipelines compare a delivery version before updating.</div>
-  <aside class="notes"><p>Full-size fingerprints from the course's run. The note is honest about the limit of "update all": in the twice-run, the second pass over day 2 reverts Sidra's corrections and the second pass over day 5 restores them. A when_matched_update with a condition on a delivery sequence number fixes it; it is a good capstone refinement.</p></aside>
+  <aside class="notes"><p>Full-size fingerprints. In the twice-run, the second pass over day 2 reverts Sidra's corrections and the second pass over day 5 restores them. A when_matched_update conditioned on a delivery sequence number fixes it: a good capstone refinement.</p></aside>
+</section>
+
+<section class="slide" id="reload-or-capture" data-label="Reload or capture" data-lo="LO2">
+  <div class="kicker">A source refreshed often</div>
+  <h2>Ufuq's dispensing table, copied every 15 minutes: three ways to copy it</h2>
+  <table class="t small">
+    <tr><th>One day, 96 copies</th><th class="num">Rows read</th><th class="num">Deletes seen</th><th>Needs</th></tr>
+    <tr><td>Full reload each time</td><td class="num">46,272,005</td><td class="num">all</td><td>Nothing but read access</td></tr>
+    <tr><td>Query on an updated-at column</td><td class="num">6,171</td><td class="num">0 of 129</td><td>A column every writer keeps current</td></tr>
+    <tr class="hl"><td>Log-based change data capture</td><td class="num">6,436 events</td><td class="num">129 of 129</td><td>Read access to the database's change log</td></tr>
+  </table>
+  <p class="caption">One simulated day of a 480,000-line table: 4,416 inserts, 1,891 updates, 129 deletes. Computed by the course's day2_examples script.</p>
+  <aside class="notes"><p>Ask the room to choose before explaining. The reload reads about 7,190 times what changed and loads the source 96 times a day. The updated-at query reads little but sees only rows that still exist: a deleted line has no row to carry a new timestamp, so 129 cancelled dispensings stay in the copy. It also sees only the last state in each window (123 intermediate states lost here). Log-based capture reads the database's own record of every committed insert, update and delete, in commit order. Source: the Debezium features page, an example of the capability; the course does not install it.</p></aside>
+</section>
+
+<section class="slide" id="change-log" data-label="Change log" data-lo="LO2">
+  <div class="kicker">Reading the change log</div>
+  <h2>Apply events in log order, merged on the key, and remember the last one applied</h2>
+  <div class="cols cols-2">
+    <div class="trace s">
+      <div class="ev call"><b>seq 66</b><span>insert line 480047 (copy 3)</span></div>
+      <div class="ev call"><b>seq 78</b><span>update line 480047 (copy 3)</span></div>
+      <div class="ev error"><b>seq 212</b><span>delete line 480047 (copy 8)</span></div>
+    </div>
+    <table class="t small">
+      <tr><th>After copy 8</th><th>Line 480047 in the copy</th></tr>
+      <tr><td>Full reload</td><td>gone: correct</td></tr>
+      <tr><td>Updated-at query</td><td>still there, as of seq 78: wrong</td></tr>
+      <tr class="hl"><td>Change log</td><td>gone: correct</td></tr>
+    </table>
+  </div>
+  <p class="small mt-s">Applied with the merge of Lab 2.2: insert, update or delete by key, skipping any event at or below the sequence already applied, so a replay changes nothing.</p>
+  <aside class="notes"><p>One line from the same simulated day. The sequence number is the log position, not a clock: order by it, never by arrival. Storing the last applied sequence per table is what makes the apply idempotent, the same promise as this morning's fingerprint. If the reader stops for longer than the log is kept, events are lost: then take one full snapshot and resume from its position.</p></aside>
+</section>
+
+<section class="slide" id="capture-or-reload-rule" data-label="Choose" data-lo="LO2">
+  <div class="kicker">Choosing</div>
+  <h2>Refreshed often and mostly unchanged: read the log. Small or rare: reload it</h2>
+  <div class="cols cols-2">
+    <div class="card c-teal flat"><h4>Log-based capture</h4><p class="small mb0">Copied many times a day, few rows change per copy, deletes matter, and the log can be read. Ufuq's dispensing table.</p></div>
+    <div class="card c-amber flat"><h4>Full reload</h4><p class="small mb0">Small or copied rarely: Rawdah's ward reference table, 1,840 rows, copied weekly, about 12 changes a week. Also the restart after a gap in the log.</p></div>
+  </div>
+  <p class="small mt">An updated-at query fits only when deletes are flags, not removals, and the database itself sets the column.</p>
+  <aside class="notes"><p>Ask: what would change the choice for the ward table? Copying it hourly would still read only 1,840 rows each time: reload stays simpler than running a log reader. The figures are from the same script, with its own seed.</p></aside>
 </section>
 
 <section class="slide" id="check-idempotent" data-label="Checkpoint" data-lo="LO2">
@@ -247,7 +291,41 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
     <div class="card c-purple"><h4>DuckLake</h4><p class="small mb0">The catalog in a SQL database; snapshots and time travel.</p></div>
   </div>
   <p class="small mt">Same ideas in all three: atomic commits, versions, time travel, schema evolution.</p>
-  <aside class="notes"><p>Interchangeable examples of the slot. Facts from each project's own site this month: DuckLake keeps its metadata in a SQL database (PostgreSQL, MySQL, SQLite or DuckDB) and supports snapshots and time travel; Iceberg queries with FOR VERSION AS OF a snapshot id. Check versions before the cohort.</p></aside>
+  <aside class="notes"><p>Interchangeable examples of the slot. From each project's site: DuckLake keeps its metadata in a SQL database (PostgreSQL, MySQL, SQLite or DuckDB); Iceberg time-travels with FOR VERSION AS OF a snapshot id. Check versions before the cohort.</p></aside>
+</section>
+
+<section class="slide" id="written-not-found" data-label="Not found" data-lo="LO2">
+  <div class="kicker">Written, but not found</div>
+  <h2>A file in the table's folder is not a file in the table</h2>
+  <div class="cols cols-2">
+    <table class="t small">
+      <tr><th>Sidra's curated pharmacy table</th><th class="num">January</th></tr>
+      <tr><td>Parquet files in <code>month=2026-01/</code></td><td class="num">1</td></tr>
+      <tr class="hl"><td>January files in the table's log</td><td class="num">0</td></tr>
+      <tr><td>Rows read through the table</td><td class="num">0</td></tr>
+      <tr><td>Rows read by a glob over the folder</td><td class="num">9,387</td></tr>
+    </table>
+    <div class="trace s">
+      <div class="ev call"><b>job</b><span>copied January's file into the folder: "success"</span></div>
+      <div class="ev error"><b>study</b><span>January: no rows</span></div>
+      <div class="ev result"><b>commit</b><span>the same rows appended through the writer: version 3</span></div>
+      <div class="ev final"><b>study</b><span>January: 9,387 rows</span></div>
+    </div>
+  </div>
+  <aside class="notes"><p>A parallel table, not the lab's: three months committed, then a January file copied in by a job that never committed. Readers of a table format read the files its log or snapshot lists, nothing else. The glob reads the folder, which is why "but the data is there" is so often heard. Computed by the course's day2_examples script. Source: the Delta transaction log protocol.</p></aside>
+</section>
+
+<section class="slide" id="register-partitions" data-label="Register" data-lo="LO2">
+  <div class="kicker">Diagnose, then register</div>
+  <h2>Compare what the metadata lists with what the folder holds</h2>
+  <table class="t small">
+    <tr><th>What you find</th><th>Register it by</th></tr>
+    <tr><td>Files copied in, or a job that stopped before its commit (Delta, Iceberg, DuckLake)</td><td>Writing the rows through the table's writer, so a commit lists them</td></tr>
+    <tr><td>A new folder the catalog has no partition for (Hive-style catalog)</td><td><code>ALTER TABLE … ADD PARTITION</code>, or <code>MSCK REPAIR TABLE</code> for every new folder</td></tr>
+    <tr><td><code>month=2026-1</code> beside <code>month=2026-01</code></td><td>Fixing the writer's format, then rewriting and registering the folder</td></tr>
+    <tr><td>Registered, yet a running session still shows none</td><td>Reading the table again: the session cached old metadata</td></tr>
+  </table>
+  <aside class="notes"><p>The order of the checks: the folder listing against the metadata first, then the partition value's spelling, then the reader's cache. Spark's documentation says partitions of a table created over existing data are not registered automatically; REPAIR TABLE adds them, and ALTER TABLE ADD PARTITION adds one. Both clear the table's cached data. Lab 2.3 ends with a stretch question on this.</p></aside>
 </section>
 
 <section class="slide" id="history-log" data-label="History" data-lo="LO2">
@@ -260,7 +338,7 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
     <tr><td class="num">2</td><td>MERGE</td><td>2% of December discharges corrected</td></tr>
     <tr><td class="num">3</td><td>WRITE (append)</td><td>Rawdah's late December encounters</td></tr>
   </table>
-  <aside class="notes"><p>Printed from DeltaTable.history() in the lab. Ask: if the analysis had not recorded "version 1", how would you find it? By timestamps, if you trust them, and only if nothing was vacuumed.</p></aside>
+  <aside class="notes"><p>From DeltaTable.history(). Ask: without "version 1" recorded, how would you find it? By timestamps, if trusted, and only if nothing was vacuumed.</p></aside>
 </section>
 
 <section class="slide" id="record-version" data-label="Record it" data-lo="LO2">

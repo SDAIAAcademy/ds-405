@@ -23,6 +23,7 @@
 # - [ ] 4 · Prove it identical, then diff with today (6')
 # - [ ] 5 · What vacuuming would break (4')
 # - [ ] ✱ Stretch · Restore the table to the recorded version and compare
+# - [ ] ✱ Stretch question · Written but not found
 
 # %%
 import os, sys, subprocess
@@ -182,17 +183,60 @@ except NotImplementedError:
     print("Stretch not attempted.")
 
 # %% [markdown]
+# ## ✱ Stretch question · Written but not found
+#
+# On a third copy, a transfer job has put Rawdah's first January encounters into the folder
+# `month=2026-01/` as a plain Parquet file, and reported success. The study team says January is
+# empty. ✏️ **Exercise** · `diagnose_and_register(table)`: count the Parquet files in January's
+# folder and the January files the table's log lists, count January rows as the table sees them, then make the
+# rows part of the table with a commit through the table's writer and count again. 🔍 Which count
+# tells you the cause, and why would reading the folder with a glob have hidden it?
+
+# %%
+late_copy = WORK / "encounters_late"
+shutil.copytree(TABLE, late_copy)
+_dec = pl.read_delta(str(late_copy)).filter((pl.col("month") == "2025-12") & (pl.col("producer") == "RWD"))
+_jan = _dec.head(max(5, _dec.height // 20)).with_columns((pl.col("encounter_id") + "J").alias("encounter_id"))
+(late_copy / "month=2026-01").mkdir()
+_jan.drop("month").write_parquet(late_copy / "month=2026-01" / "part-00000.parquet")  # no commit
+JAN_SENT = _jan.height
+
+
+def diagnose_and_register(table: Path) -> dict:
+    # BEGIN SOLUTION
+    on_disk = len(list((table / "month=2026-01").glob("*.parquet")))
+    in_log = sum("month=2026-01" in f for f in DeltaTable(str(table)).file_uris())
+    before = pl.read_delta(str(table)).filter(pl.col("month") == "2026-01").height
+    stray = pl.read_parquet(table / "month=2026-01" / "part-00000.parquet").with_columns(pl.lit("2026-01").alias("month"))
+    stray.select(pl.read_delta(str(table)).columns).write_delta(str(table), mode="append")
+    after = pl.read_delta(str(table)).filter(pl.col("month") == "2026-01").height
+    return {"files_on_disk": on_disk, "files_in_log": in_log, "january_before": before, "january_after": after}
+    # END SOLUTION
+
+
+try:
+    found = diagnose_and_register(late_copy)
+    print(found)
+    U.check(found["files_on_disk"] == 1 and found["files_in_log"] == 0, "January's folder holds a file the table's log does not list")
+    U.check(found["january_before"] == 0 and found["january_after"] == JAN_SENT,
+            f"January was invisible until committed; now {JAN_SENT} rows")
+except NotImplementedError:
+    print("Stretch question not attempted.")
+
+# %% [markdown]
 # ## Checkpoint
 #
 # 1. The analysis log says "built on 2026-01-04" but not the version. Can you rebuild it exactly?
 # 2. Why did the late Rawdah rows change the figures although nobody "edited" December?
 # 3. Who should decide the vacuum retention: the platform team alone?
+# 4. A job says it wrote January, and the table shows no January rows. What do you compare first?
 #
 # <details><summary>Answers</summary>
 #
 # 1. Only if the table keeps timestamps and you can map the time to a version; the version itself is the reliable reference, so log it.
 # 2. December's set is defined by the data present; late deliveries add rows to a past period. Reported figures must say which version they used.
 # 3. No: the retention is a promise to the people who rely on reproducing releases, so the release board and the data owner set it with the platform team.
+# 4. The files in the folder against the files the table's metadata lists (the log here, the catalog's partitions for a catalogued table). A file outside the metadata is not in the table; a glob over the folder reads it anyway, which is why a quick check by glob says "the data is there". Register it by committing through the table's writer, or by the catalog's own command for a catalogued table.
 # </details>
 #
 # **Carry forward.** Nothing: Lab 2.4 reads the lake.

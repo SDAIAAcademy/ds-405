@@ -124,6 +124,10 @@ Each line is a capability; the examples are interchangeable.
 - [Marquez](https://marquezproject.ai/)
 - [Pandera](https://pandera.readthedocs.io/en/stable/)
 - [Soda Core](https://github.com/sodadata/soda-core)
+- [Delta Lake transaction log protocol](https://github.com/delta-io/delta/blob/master/PROTOCOL.md)
+- [Apache Spark SQL: REPAIR TABLE](https://spark.apache.org/docs/latest/sql-ref-syntax-ddl-repair-table.html)
+- [Apache Spark SQL: ALTER TABLE (ADD PARTITION)](https://spark.apache.org/docs/latest/sql-ref-syntax-ddl-alter-table.html)
+- [Debezium: log-based change data capture features](https://debezium.io/documentation/reference/stable/features.html)
 
 ### Linkage, synthetic data and privacy
 
