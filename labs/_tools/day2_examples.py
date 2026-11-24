@@ -11,7 +11,8 @@
    counts what the folder holds, what the table holds, and what changes after a commit.
 
 Everything is synthetic, with a fixed seed. The slides `reload-or-capture`, `change-log`,
-`written-not-found` and `register-partitions` in slides/day2.html quote these numbers.
+`written-not-found` and `register-partitions` in slides/day2.html quote these results; the last
+one also uses the check of a misspelt partition folder (month=2026-1).
 """
 from __future__ import annotations
 
@@ -130,6 +131,15 @@ def registration_example() -> dict:
             str(table), mode="append", delta_write_options={"partition_by": ["month"]})
         dt2 = DeltaTable(str(table))
         jan_rows_after = pl.read_delta(str(table)).filter(pl.col("month") == "2026-01").height
+
+        # a folder read by its name (hive partitioning): month=2026-1 is another value than 2026-01
+        folders = tmp / "folders"
+        for name in ("month=2025-12", "month=2026-1"):
+            (folders / name).mkdir(parents=True)
+            jan.drop("month").write_parquet(folders / name / "part-0.parquet")
+        scan = pl.scan_parquet(str(folders / "**" / "*.parquet"), hive_partitioning=True)
+        misspelt_rows_found = scan.filter(pl.col("month").cast(pl.String) == "2026-01").select(pl.len()).collect().item()
+        misspelt_values = sorted(scan.select(pl.col("month").cast(pl.String).unique()).collect()["month"].to_list())
         return {
             "rows_per_month": sizes, "parquet_files_on_disk": len(on_disk), "files_in_table": len(in_table),
             "jan_files_on_disk": jan_on_disk, "jan_files_in_table": jan_in_table,
@@ -137,6 +147,7 @@ def registration_example() -> dict:
             "jan_rows_by_folder_scan": glob_rows,
             "version_after_commit": dt2.version(), "files_in_table_after": len(dt2.file_uris()),
             "jan_rows_visible_after": jan_rows_after,
+            "misspelt_folder_values": misspelt_values, "misspelt_folder_rows_found_by_2026_01": misspelt_rows_found,
         }
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

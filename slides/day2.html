@@ -141,7 +141,7 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
     <div class="card c-purple"><h4>Late correction</h4><p class="small mb0">Sidra's 2026-01-05 file corrects 15 results of 2026-01-02.</p></div>
   </div>
   <p class="small mt"><b>Idempotent:</b> running a load twice leaves the table exactly as running it once.</p>
-  <aside class="notes"><p>All three are planted in data/lake/landing. Ask who has seen a dashboard double for one day after a re-run. Most hands go up.</p></aside>
+  <aside class="notes"><p>All three are planted in data/lake/landing. Ask who has seen a dashboard double after a re-run.</p></aside>
 </section>
 
 <section class="slide" id="append-doubles" data-label="Append" data-lo="LO2">
@@ -163,7 +163,7 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
   <pre class="code s" data-file="Lab 2.2"><code class="language-python">def table_hash(df):
     d = df.select(COLS).sort(KEY)          # fixed columns, fixed order
     return hashlib.sha256(d.write_csv().encode()).hexdigest()[:16]</code></pre>
-  <p class="small mt-s">Two tables with the same fingerprint hold the same rows. That is the proof the outcome asks for: identical output when a day is re-run.</p>
+  <p class="small mt-s">Same fingerprint, same rows: the proof that a re-run day gives identical output.</p>
   <aside class="notes"><p>Leave out columns that legitimately change between runs (a load timestamp). Here the delivered_day is left out because a re-sent day keeps its date anyway. U.fingerprint in the helper does the same with column hashes, faster on big tables.</p></aside>
 </section>
 
@@ -210,8 +210,9 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
     <tr><td>Query on an updated-at column</td><td class="num">6,171</td><td class="num">0 of 129</td><td>A column every writer keeps current</td></tr>
     <tr class="hl"><td>Log-based change data capture</td><td class="num">6,436 events</td><td class="num">129 of 129</td><td>Read access to the database's change log</td></tr>
   </table>
-  <p class="caption">One simulated day of a 480,000-line table: 4,416 inserts, 1,891 updates, 129 deletes. Computed by the course's day2_examples script.</p>
-  <aside class="notes"><p>Ask the room to choose before explaining. The reload reads about 7,190 times what changed and loads the source 96 times a day. The updated-at query reads little but sees only rows that still exist: a deleted line has no row to carry a new timestamp, so 129 cancelled dispensings stay in the copy. It also sees only the last state in each window (123 intermediate states lost here). Log-based capture reads the database's own record of every committed insert, update and delete, in commit order. Source: the Debezium features page, an example of the capability; the course does not install it.</p></aside>
+  <p class="caption">One simulated day of a 480,000-line table: 4,416 inserts, 1,891 updates, 129 deletes.</p>
+  <p class="small mt-s"><b>Contrast:</b> Rawdah's ward reference table, 1,840 rows copied weekly with about 12 changes, is simply reloaded.</p>
+  <aside class="notes"><p>Ask the room to choose first. The reload reads about 7,190 times what changed. The updated-at query misses deletes (a deleted row carries no new time) and 123 intermediate states. The log holds every committed change in order. Read the log when copies are frequent and changes few; reload what is small or rare, and after a gap in the log. Numbers: the day2_examples script. Source: Debezium features page; the course does not install it.</p></aside>
 </section>
 
 <section class="slide" id="change-log" data-label="Change log" data-lo="LO2">
@@ -231,18 +232,7 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
     </table>
   </div>
   <p class="small mt-s">Applied with the merge of Lab 2.2: insert, update or delete by key, skipping any event at or below the sequence already applied, so a replay changes nothing.</p>
-  <aside class="notes"><p>One line from the same simulated day. The sequence number is the log position, not a clock: order by it, never by arrival. Storing the last applied sequence per table is what makes the apply idempotent, the same promise as this morning's fingerprint. If the reader stops for longer than the log is kept, events are lost: then take one full snapshot and resume from its position.</p></aside>
-</section>
-
-<section class="slide" id="capture-or-reload-rule" data-label="Choose" data-lo="LO2">
-  <div class="kicker">Choosing</div>
-  <h2>Refreshed often and mostly unchanged: read the log. Small or rare: reload it</h2>
-  <div class="cols cols-2">
-    <div class="card c-teal flat"><h4>Log-based capture</h4><p class="small mb0">Copied many times a day, few rows change per copy, deletes matter, and the log can be read. Ufuq's dispensing table.</p></div>
-    <div class="card c-amber flat"><h4>Full reload</h4><p class="small mb0">Small or copied rarely: Rawdah's ward reference table, 1,840 rows, copied weekly, about 12 changes a week. Also the restart after a gap in the log.</p></div>
-  </div>
-  <p class="small mt">An updated-at query fits only when deletes are flags, not removals, and the database itself sets the column.</p>
-  <aside class="notes"><p>Ask: what would change the choice for the ward table? Copying it hourly would still read only 1,840 rows each time: reload stays simpler than running a log reader. The figures are from the same script, with its own seed.</p></aside>
+  <aside class="notes"><p>One line from the same simulated day. Order by log position, never by arrival. The last applied sequence makes the apply idempotent. A reader stopped longer than the log is kept loses events: take one full snapshot and resume from its position.</p></aside>
 </section>
 
 <section class="slide" id="check-idempotent" data-label="Checkpoint" data-lo="LO2">
@@ -279,7 +269,7 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
     </ul>
     <div class="card c-navy tint"><h4>Without history</h4><p class="small mb0">You rebuild from backups, if any, and hope nothing else changed.</p></div>
   </div>
-  <aside class="notes"><p>Dr. Fadwa Al-Qassabi's question is the reproducibility promise every release makes. Lab 2.3's setup builds the table with four versions from the lake.</p></aside>
+  <aside class="notes"><p>Dr. Fadwa Al-Qassabi's question is every release's reproducibility promise. Lab 2.3 builds the four-version table from the lake.</p></aside>
 </section>
 
 <section class="slide" id="table-formats" data-label="Table formats" data-lo="LO2">
@@ -312,7 +302,7 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
       <div class="ev final"><b>study</b><span>January: 9,387 rows</span></div>
     </div>
   </div>
-  <aside class="notes"><p>A parallel table, not the lab's: three months committed, then a January file copied in by a job that never committed. Readers of a table format read the files its log or snapshot lists, nothing else. The glob reads the folder, which is why "but the data is there" is so often heard. Computed by the course's day2_examples script. Source: the Delta transaction log protocol.</p></aside>
+  <aside class="notes"><p>Three months committed, then a January file copied in without a commit. A table's readers read only the files its log lists; a glob reads the folder, hence "but the data is there". Numbers: the day2_examples script. Source: the Delta transaction log protocol.</p></aside>
 </section>
 
 <section class="slide" id="register-partitions" data-label="Register" data-lo="LO2">
@@ -320,12 +310,11 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
   <h2>Compare what the metadata lists with what the folder holds</h2>
   <table class="t small">
     <tr><th>What you find</th><th>Register it by</th></tr>
-    <tr><td>Files copied in, or a job that stopped before its commit (Delta, Iceberg, DuckLake)</td><td>Writing the rows through the table's writer, so a commit lists them</td></tr>
-    <tr><td>A new folder the catalog has no partition for (Hive-style catalog)</td><td><code>ALTER TABLE … ADD PARTITION</code>, or <code>MSCK REPAIR TABLE</code> for every new folder</td></tr>
-    <tr><td><code>month=2026-1</code> beside <code>month=2026-01</code></td><td>Fixing the writer's format, then rewriting and registering the folder</td></tr>
-    <tr><td>Registered, yet a running session still shows none</td><td>Reading the table again: the session cached old metadata</td></tr>
+    <tr><td>Files copied in, or a job that stopped before its commit (a table format such as Delta)</td><td>Writing the rows through the table's writer, so a commit lists them</td></tr>
+    <tr><td>A new folder the catalog has no partition for (a Hive-style catalog)</td><td><code>ALTER TABLE … ADD PARTITION</code>, or <code>MSCK REPAIR TABLE</code> for every new folder</td></tr>
+    <tr><td><code>month=2026-1</code> beside <code>month=2026-01</code></td><td>Fixing the writer's format: a filter on 2026-01 finds none of its rows</td></tr>
   </table>
-  <aside class="notes"><p>The order of the checks: the folder listing against the metadata first, then the partition value's spelling, then the reader's cache. Spark's documentation says partitions of a table created over existing data are not registered automatically; REPAIR TABLE adds them, and ALTER TABLE ADD PARTITION adds one. Both clear the table's cached data. Lab 2.3 ends with a stretch question on this.</p></aside>
+  <aside class="notes"><p>Check the folder against the metadata first, then the partition value's spelling. Spark's documentation: partitions of a table created over existing data are not registered automatically; REPAIR TABLE adds them, ALTER TABLE ADD PARTITION adds one, and both clear the table's cached data. The misspelt folder is computed by the day2_examples script. Lab 2.3 ends with a stretch question on this.</p></aside>
 </section>
 
 <section class="slide" id="history-log" data-label="History" data-lo="LO2">
@@ -346,7 +335,7 @@ labs/producer=RWD/month=2025-12/part-0.parquet</code></pre>
   <h2>Record the version with the analysis, and the fingerprint of what it produced</h2>
   <pre class="code s" data-file="analysis run record"><code class="language-json">{"analysis": "december_discharges", "table": "curated/encounters",
  "version": 1, "rows": 15, "fingerprint": "2b4a6dfab81fa30c"}</code></pre>
-  <p class="small mt-s">Two fields make the figures reproducible: the version read and the fingerprint written.</p>
+  <p class="small mt-s">Version read, fingerprint written: the figures are reproducible.</p>
   <aside class="notes"><p>The fingerprint is from the course's full-size run; quick mode gives another one. The capstone README reports the table versions behind every number it states.</p></aside>
 </section>
 
